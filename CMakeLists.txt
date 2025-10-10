@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
 project(raylib-wasm-template)
 
-set(CMAKE_EXECUTABLE_SUFFIX ".html")
+set(CMAKE_EXECUTABLE_SUFFIX ".js")
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(SUPPORT_FILEFORMAT_SVG)
