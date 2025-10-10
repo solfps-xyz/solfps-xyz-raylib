@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 4.0)
 project(raylib-wasm-template)
 
 set(CMAKE_EXECUTABLE_SUFFIX ".html")
