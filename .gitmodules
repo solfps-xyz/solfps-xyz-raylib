@@ -1,7 +1,3 @@
 [submodule "lib/raylib"]
 	path = lib/raylib
 	url = https://github.com/raysan5/raylib
-[submodule "lib/r3d"]
-	path = lib/r3d
-	url = https://github.com/Bigfoot71/r3d.git
-	branch = v0.4

@@ -4,24 +4,33 @@
 
 ## Prerequisites
 1. Install Emscripten
-2. Activate the Emsripten Environment
+2. Activate the Emscripten Environment
 
 ## Build Steps
 1. Clone Raylib Git Submodule
-2. Build Raylib for WebAssembly
 ```sh
-cd lib/raylib/src
-emmake make PLATFORM=PLATFORM_WEB -B
-cd ../../..
+git submodule update --init --recursive
 ```
-3. Build Project
+
+2. Build Project for WebAssembly
 ```sh
 mkdir -p webbuild
 cd webbuild
 emcmake cmake ..
 emmake make
 ```
-4. Run localhost web server to view the game
-```
+
+3. Run localhost web server to view the game
+```sh
 npx serve
+```
+
+## Desktop Build (Optional)
+To build for desktop instead of web, create a separate build directory:
+```sh
+mkdir -p build
+cd build
+cmake ..
+make
+./raylib-wasm-template
 ```
