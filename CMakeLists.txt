@@ -9,7 +9,16 @@ set(SUPPORT_FILEFORMAT_SVG)
 # Add compiler flags to handle implicit function declarations (treat as warning, not error)
 add_compile_options(-Wno-error=implicit-function-declaration)
 
-add_executable(${PROJECT_NAME} src/main.cpp)
+# Source files
+set(SOURCES
+    src/main.cpp
+    src/player.cpp
+    src/map.cpp
+    src/gun.cpp
+    src/ui.cpp
+)
+
+add_executable(${PROJECT_NAME} ${SOURCES})
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s ERROR_ON_UNDEFINED_SYMBOLS=0 -sALLOW_MEMORY_GROWTH -sEXPORTED_RUNTIME_METHODS=printErr --bind --memory")
 
