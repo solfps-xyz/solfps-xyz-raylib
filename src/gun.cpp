@@ -12,18 +12,42 @@ Gun::Gun() {
     bobSpeed = 0.0f;
     recoilAngle = 0.0f;
     isRecoiling = false;
+    sprintTilt = 0.0f;
+    currentSoundIndex = 0;
+    
+    // Load gunshot sound - wrap in try-catch for web builds
+    #if defined(PLATFORM_WEB)
+        // For web, the file will be preloaded
+        if (FileExists("assets/gun/audio/submachinegun-gunshot.mp3")) {
+            shootSound = LoadSound("assets/gun/audio/submachinegun-gunshot.mp3");
+            SetSoundVolume(shootSound, 0.5f);
+            
+            // Create multiple instances for overlapping sounds
+            for (int i = 0; i < MAX_SOUND_INSTANCES; i++) {
+                shootSoundInstances[i] = LoadSoundAlias(shootSound);
+            }
+        }
+    #else
+        shootSound = LoadSound("assets/gun/audio/submachinegun-gunshot.mp3");
+        SetSoundVolume(shootSound, 0.5f);
+        
+        // Create multiple instances for overlapping sounds
+        for (int i = 0; i < MAX_SOUND_INSTANCES; i++) {
+            shootSoundInstances[i] = LoadSoundAlias(shootSound);
+        }
+    #endif
 }
 
 Gun::~Gun() {
-    // Cleanup if model is loaded
+    // Cleanup sound instances
+    for (int i = 0; i < MAX_SOUND_INSTANCES; i++) {
+        UnloadSoundAlias(shootSoundInstances[i]);
+    }
+    // Cleanup main sound
+    UnloadSound(shootSound);
 }
 
-void Gun::update(float deltaTime, bool isMoving, bool isShooting) {
-    // Debug output
-    if (isShooting) {
-        std::cout << "DEBUG Gun::update: isShooting = TRUE" << std::endl;
-    }
-    
+void Gun::update(float deltaTime, bool isMoving, bool isShooting, Vector3 playerVelocity) {
     // Weapon bob while moving
     if (isMoving) {
         bobSpeed += deltaTime * 10.0f;
@@ -32,6 +56,19 @@ void Gun::update(float deltaTime, bool isMoving, bool isShooting) {
         bobSpeed = 0.0f;
         bobOffset *= 0.9f; // Smooth return
     }
+    
+    // Sprint tilt - tilt gun horizontally based on movement speed
+    float horizontalSpeed = sqrtf(playerVelocity.x * playerVelocity.x + playerVelocity.z * playerVelocity.z);
+    float targetTilt = 0.0f;
+    
+    if (horizontalSpeed > 0.5f) {
+        // Tilt gun 25-35 degrees when running (classic FPS style)
+        targetTilt = 30.0f * (horizontalSpeed / 10.0f); // Scale with speed
+        targetTilt = fminf(targetTilt, 35.0f); // Cap at 35 degrees
+    }
+    
+    // Smooth interpolation
+    sprintTilt += (targetTilt - sprintTilt) * deltaTime * 8.0f;
     
     // Recoil
     if (isShooting) {
@@ -50,7 +87,10 @@ void Gun::update(float deltaTime, bool isMoving, bool isShooting) {
 void Gun::applyRecoil() {
     recoilAngle = 2.5f; // Lighter kick (was 5.0f)
     isRecoiling = true;
-    std::cout << "Gun recoil applied! recoilAngle: " << recoilAngle << ", isRecoiling: " << isRecoiling << std::endl;
+    
+    // Play gunshot sound using round-robin to allow overlapping
+    PlaySound(shootSoundInstances[currentSoundIndex]);
+    currentSoundIndex = (currentSoundIndex + 1) % MAX_SOUND_INSTANCES;
 }
 
 void Gun::drawSimple(Camera3D camera) {
@@ -86,6 +126,7 @@ void Gun::drawSimple(Camera3D camera) {
         rlTranslatef(gunPos.x, gunPos.y, gunPos.z);
         rlRotatef(yaw, 0, 1, 0);
         rlRotatef(-pitch, 1, 0, 0);
+        rlRotatef(sprintTilt, 0, 0, 1); // Sprint tilt (roll) - horizontal gun when running
         DrawCube((Vector3){0, 0, 0}, 0.08f, 0.08f, 0.3f, gunBody);
         DrawCubeWires((Vector3){0, 0, 0}, 0.08f, 0.08f, 0.3f, Fade(gunAccent, 0.3f));
     rlPopMatrix();
@@ -96,6 +137,7 @@ void Gun::drawSimple(Camera3D camera) {
         rlTranslatef(barrelPos.x, barrelPos.y, barrelPos.z);
         rlRotatef(yaw, 0, 1, 0);
         rlRotatef(-pitch, 1, 0, 0);
+        rlRotatef(sprintTilt, 0, 0, 1); // Sprint tilt
         DrawCube((Vector3){0, 0, 0}, 0.02f, 0.02f, 0.15f, (Color){ 60, 60, 65, 255 });
     rlPopMatrix();
     
@@ -105,6 +147,7 @@ void Gun::drawSimple(Camera3D camera) {
         rlTranslatef(magPos.x, magPos.y, magPos.z);
         rlRotatef(yaw, 0, 1, 0);
         rlRotatef(-pitch, 1, 0, 0);
+        rlRotatef(sprintTilt, 0, 0, 1); // Sprint tilt
         DrawCube((Vector3){0, 0, 0}, 0.04f, 0.08f, 0.12f, gunBody);
     rlPopMatrix();
     
@@ -115,6 +158,7 @@ void Gun::drawSimple(Camera3D camera) {
         rlTranslatef(sightPos.x, sightPos.y, sightPos.z);
         rlRotatef(yaw, 0, 1, 0);
         rlRotatef(-pitch, 1, 0, 0);
+        rlRotatef(sprintTilt, 0, 0, 1); // Sprint tilt
         DrawCube((Vector3){0, 0, 0}, 0.01f, 0.02f, 0.01f, gunAccent);
     rlPopMatrix();
     DrawSphere(sightPos, 0.015f, Fade(gunAccent, 0.5f)); // Glow (spheres don't need rotation)
@@ -129,25 +173,65 @@ void Gun::drawSimple(Camera3D camera) {
         DrawCube((Vector3){0, 0, 0}, 0.03f, 0.06f, 0.08f, (Color){ 30, 30, 35, 255 });
     rlPopMatrix();
     
-    // Muzzle flash (when shooting)
-    // Always show a dim barrel tip for reference
-    Vector3 flashPos = Vector3Add(barrelPos, Vector3Scale(forward, 0.1f));
+    // Enhanced Muzzle Flash (when shooting)
+    Vector3 flashPos = Vector3Add(barrelPos, Vector3Scale(forward, 0.08f));
     
-    if (isRecoiling) { // Simplified - show whenever recoiling
-        // Multiple layers for a more visible flash (spheres don't need rotation)
-        DrawSphere(flashPos, 0.15f, (Color){ 255, 255, 0, 255 });
-        DrawSphere(flashPos, 0.2f, (Color){ 255, 150, 0, 220 });
-        DrawSphere(flashPos, 0.25f, (Color){ 255, 100, 0, 150 });
+    if (isRecoiling && recoilAngle > 0.5f) {
+        // Flash intensity based on recoil (fades out)
+        float intensity = (recoilAngle / 2.5f);
+        float flashScale = 0.7f + (GetRandomValue(0, 30) / 100.0f); // Random size variation (smaller)
         
-        // Flash cone
+        // Bright white core (hottest part) - reduced size
+        DrawSphere(flashPos, 0.04f * flashScale * intensity, (Color){ 255, 255, 255, 255 });
+        
+        // Yellow-orange inner glow - reduced size
+        DrawSphere(flashPos, 0.07f * flashScale * intensity, (Color){ 255, 255, 100, 240 });
+        DrawSphere(flashPos, 0.10f * flashScale * intensity, (Color){ 255, 200, 50, 200 });
+        
+        // Orange-red outer layers - reduced size
+        DrawSphere(flashPos, 0.13f * flashScale * intensity, (Color){ 255, 150, 0, 160 });
+        DrawSphere(flashPos, 0.16f * flashScale * intensity, (Color){ 255, 80, 0, 100 });
+        
+        // Randomized flash spikes/rays (star pattern) - smaller and fewer
+        int numRays = 4;
+        for (int i = 0; i < numRays; i++) {
+            float angle = (i * 90.0f) + GetRandomValue(-10, 10); // Random angle variation
+            float rayLength = 0.08f + (GetRandomValue(0, 5) / 100.0f); // Shorter rays
+            
+            rlPushMatrix();
+                rlTranslatef(flashPos.x, flashPos.y, flashPos.z);
+                rlRotatef(yaw, 0, 1, 0);
+                rlRotatef(-pitch, 1, 0, 0);
+                rlRotatef(angle, 0, 0, 1); // Rotate around forward axis
+                
+                // Draw ray as stretched cube
+                Vector3 rayOffset = {rayLength * 0.5f, 0, 0};
+                DrawCube(rayOffset, rayLength, 0.015f, 0.015f, 
+                        (Color){ 255, 200, 100, (unsigned char)(200 * intensity) });
+            rlPopMatrix();
+        }
+        
+        // Smoke/heat distortion particles - smaller
+        for (int i = 0; i < 2; i++) {
+            float smokeOffset = 0.08f + (i * 0.05f);
+            Vector3 smokePos = Vector3Add(flashPos, Vector3Scale(forward, smokeOffset));
+            float smokeAlpha = 80.0f * (1.0f - (i * 0.4f)) * intensity;
+            DrawSphere(smokePos, 0.03f + (i * 0.02f), 
+                      (Color){ 80, 80, 80, (unsigned char)smokeAlpha });
+        }
+        
+        // Bright lens flare effect - smaller
         rlPushMatrix();
             rlTranslatef(flashPos.x, flashPos.y, flashPos.z);
             rlRotatef(yaw, 0, 1, 0);
             rlRotatef(-pitch, 1, 0, 0);
-            DrawCube((Vector3){0, 0, 0}, 0.15f, 0.15f, 0.25f, (Color){ 255, 200, 0, 240 });
-            DrawCubeWires((Vector3){0, 0, 0}, 0.2f, 0.2f, 0.3f, (Color){ 255, 255, 255, 220 });
+            
+            // Cross-shaped flare - reduced size
+            DrawCube((Vector3){0, 0, 0}, 0.2f * intensity, 0.01f, 0.01f, (Color){ 255, 255, 200, 120 });
+            DrawCube((Vector3){0, 0, 0}, 0.01f, 0.2f * intensity, 0.01f, (Color){ 255, 255, 200, 120 });
         rlPopMatrix();
-    } else {
+        
+    } else if (!isRecoiling) {
         // When not shooting, show a small cyan sight dot at the barrel tip
         DrawSphere(flashPos, 0.02f, (Color){ 0, 255, 255, 100 });
     }

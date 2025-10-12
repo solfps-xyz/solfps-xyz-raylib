@@ -24,13 +24,27 @@ public:
     int maxAmmo;
     float recoilOffset;
     
+    // Footstep audio
+    static const int MAX_FOOTSTEP_SOUNDS = 9;
+    static const int MAX_FOOTSTEP_INSTANCES = 4; // Multi-channel support
+    Sound footstepSounds[MAX_FOOTSTEP_SOUNDS];
+    Sound footstepInstances[MAX_FOOTSTEP_INSTANCES];
+    int currentFootstepIndex;
+    int currentInstanceIndex;
+    float footstepTimer;
+    float footstepInterval;
+    float lastHorizontalSpeed;
+    
     Player();
+    ~Player();
     void update(float deltaTime);
     void handleInput(float deltaTime);
     void handleMouseLook();
     void applyGravity(float deltaTime);
     void shoot();
     void reload();
+    void playFootstep();
+    void updateFootsteps(float deltaTime);
     Vector3 getForward();
     Vector3 getRight();
 };

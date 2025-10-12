@@ -2,6 +2,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <cmath>
+#include <cstdio>
 #include <iostream>
 
 Player::Player() {
@@ -28,6 +29,48 @@ Player::Player() {
     ammo = 30;
     maxAmmo = 30;
     recoilOffset = 0.0f;
+    
+    // Footstep audio
+    currentFootstepIndex = 0;
+    currentInstanceIndex = 0;
+    footstepTimer = 0.0f;
+    footstepInterval = 0.4f; // Time between footsteps (will adjust based on speed)
+    lastHorizontalSpeed = 0.0f;
+    
+    // Load footstep sounds
+    #if defined(PLATFORM_WEB)
+        for (int i = 0; i < MAX_FOOTSTEP_SOUNDS; i++) {
+            char path[256];
+            snprintf(path, sizeof(path), "assets/character/audio/footsteps/Floor_step%d.wav", i);
+            if (FileExists(path)) {
+                footstepSounds[i] = LoadSound(path);
+                SetSoundVolume(footstepSounds[i], 0.3f); // Lower volume for footsteps
+            }
+        }
+    #else
+        for (int i = 0; i < MAX_FOOTSTEP_SOUNDS; i++) {
+            char path[256];
+            snprintf(path, sizeof(path), "assets/character/audio/footsteps/Floor_step%d.wav", i);
+            footstepSounds[i] = LoadSound(path);
+            SetSoundVolume(footstepSounds[i], 0.3f);
+        }
+    #endif
+    
+    // Create sound instances for multi-channel playback
+    for (int i = 0; i < MAX_FOOTSTEP_INSTANCES; i++) {
+        footstepInstances[i] = LoadSoundAlias(footstepSounds[0]); // Start with first sound
+    }
+}
+
+Player::~Player() {
+    // Cleanup footstep sound instances
+    for (int i = 0; i < MAX_FOOTSTEP_INSTANCES; i++) {
+        UnloadSoundAlias(footstepInstances[i]);
+    }
+    // Cleanup footstep sounds
+    for (int i = 0; i < MAX_FOOTSTEP_SOUNDS; i++) {
+        UnloadSound(footstepSounds[i]);
+    }
 }
 
 void Player::handleMouseLook() {
@@ -86,6 +129,14 @@ void Player::handleInput(float deltaTime) {
         moveDir = Vector3Normalize(moveDir);
         moveDir = Vector3Scale(moveDir, currentSpeed * deltaTime);
         camera.position = Vector3Add(camera.position, moveDir);
+        
+        // Update horizontal velocity for footstep system
+        velocity.x = moveDir.x / deltaTime;
+        velocity.z = moveDir.z / deltaTime;
+    } else {
+        // No horizontal movement
+        velocity.x = 0.0f;
+        velocity.z = 0.0f;
     }
     
     // Jump
@@ -121,7 +172,6 @@ void Player::applyGravity(float deltaTime) {
 }
 
 void Player::shoot() {
-    std::cout << "DEBUG Player::shoot() called!" << std::endl;
     isShooting = true;
     ammo--;
     shootCooldown = 0.1f; // 600 RPM
@@ -152,6 +202,51 @@ void Player::update(float deltaTime) {
     Vector3 direction = getForward();
     camera.target = Vector3Add(camera.position, direction);
     
+    // Update footsteps
+    updateFootsteps(deltaTime);
+    
     // DON'T reset isShooting here - let main.cpp handle it after effects are processed
     // isShooting = false;
+}
+
+void Player::playFootstep() {
+    // Cycle through the 9 different footstep sounds
+    currentFootstepIndex = (currentFootstepIndex + 1) % MAX_FOOTSTEP_SOUNDS;
+    
+    // Update the current instance to use the new sound
+    UnloadSoundAlias(footstepInstances[currentInstanceIndex]);
+    footstepInstances[currentInstanceIndex] = LoadSoundAlias(footstepSounds[currentFootstepIndex]);
+    
+    // Play the sound on the current instance
+    PlaySound(footstepInstances[currentInstanceIndex]);
+    
+    // Move to next instance for multi-channel support
+    currentInstanceIndex = (currentInstanceIndex + 1) % MAX_FOOTSTEP_INSTANCES;
+}
+
+void Player::updateFootsteps(float deltaTime) {
+    // Calculate horizontal movement speed
+    float horizontalSpeed = sqrtf(velocity.x * velocity.x + velocity.z * velocity.z);
+    
+    // Only play footsteps if moving on ground
+    if (isGrounded && horizontalSpeed > 0.1f) {
+        // Adjust footstep interval based on speed (faster when sprinting)
+        if (isSprinting) {
+            footstepInterval = 0.3f; // Faster footsteps when sprinting
+        } else {
+            footstepInterval = 0.45f; // Normal walking pace
+        }
+        
+        footstepTimer += deltaTime;
+        
+        if (footstepTimer >= footstepInterval) {
+            playFootstep();
+            footstepTimer = 0.0f;
+        }
+    } else {
+        // Reset timer when not moving
+        footstepTimer = 0.0f;
+    }
+    
+    lastHorizontalSpeed = horizontalSpeed;
 }

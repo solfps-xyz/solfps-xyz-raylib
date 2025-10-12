@@ -20,7 +20,14 @@ set(SOURCES
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s ERROR_ON_UNDEFINED_SYMBOLS=0 -sALLOW_MEMORY_GROWTH -sEXPORTED_RUNTIME_METHODS=printErr --bind --memory")
+# Copy assets folder to build directory for web builds
+add_custom_command(TARGET ${PROJECT_NAME} PRE_LINK
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets ${CMAKE_BINARY_DIR}/assets
+    COMMENT "Copying assets to build directory"
+)
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s USE_GLFW=3 -s ASSERTIONS=1 -s WASM=1 -s ASYNCIFY -s ERROR_ON_UNDEFINED_SYMBOLS=0 -sALLOW_MEMORY_GROWTH -sEXPORTED_RUNTIME_METHODS=printErr,HEAPF32 --bind --memory --preload-file assets -s STACK_SIZE=131072")
 
 # Include directories
 include_directories(lib/raylib/src)
