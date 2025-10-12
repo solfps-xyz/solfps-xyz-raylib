@@ -4,22 +4,25 @@
 
 Map::Map() {
     groundPosition = (Vector3){ 0.0f, 0.0f, 0.0f };
-    groundSize = (Vector2){ 50.0f, 50.0f };
+    groundSize = (Vector2){ 120.0f, 120.0f }; // Much bigger ground
 }
 
 void Map::loadCyberpunkArena() {
     walls.clear();
     platforms.clear();
     
-    // Outer walls - Create an arena
-    float arenaSize = 40.0f;
-    float wallHeight = 5.0f;
-    float wallThickness = 1.0f;
+    // TEAM DEATHMATCH ARENA - Larger, more strategic layout
+    float arenaSize = 100.0f; // Increased from 40 to 100
+    float wallHeight = 8.0f;
+    float wallThickness = 1.5f;
     
     Color neonPurple = (Color){ 138, 43, 226, 255 };
     Color neonCyan = (Color){ 0, 255, 255, 255 };
+    Color neonPink = (Color){ 255, 20, 147, 255 };
     Color darkGray = (Color){ 40, 40, 50, 255 };
+    Color mediumGray = (Color){ 60, 60, 70, 255 };
     
+    // ==== OUTER PERIMETER WALLS ====
     // North wall
     walls.push_back({
         (Vector3){ 0.0f, wallHeight/2, -arenaSize/2 },
@@ -48,64 +51,158 @@ void Map::loadCyberpunkArena() {
         neonCyan
     });
     
-    // Interior obstacles - Create cover spots
-    // Center platform
+    // ==== CENTER CONTROL POINT ====
+    // Elevated center platform (king of the hill style)
     platforms.push_back({
-        (Vector3){ 0.0f, 1.0f, 0.0f },
-        (Vector3){ 6.0f, 2.0f, 6.0f },
-        (Color){ 70, 70, 90, 255 }
+        (Vector3){ 0.0f, 2.0f, 0.0f },
+        (Vector3){ 12.0f, 4.0f, 12.0f },
+        (Color){ 80, 40, 120, 255 }
     });
     
-    // Corner cover - NorthWest
+    // Center pillars for cover on the platform
     walls.push_back({
-        (Vector3){ -12.0f, 2.0f, -12.0f },
-        (Vector3){ 5.0f, 4.0f, 1.5f },
+        (Vector3){ -4.0f, 5.5f, -4.0f },
+        (Vector3){ 2.5f, 7.0f, 2.5f },
+        neonPink
+    });
+    walls.push_back({
+        (Vector3){ 4.0f, 5.5f, -4.0f },
+        (Vector3){ 2.5f, 7.0f, 2.5f },
+        neonPink
+    });
+    walls.push_back({
+        (Vector3){ -4.0f, 5.5f, 4.0f },
+        (Vector3){ 2.5f, 7.0f, 2.5f },
+        neonPink
+    });
+    walls.push_back({
+        (Vector3){ 4.0f, 5.5f, 4.0f },
+        (Vector3){ 2.5f, 7.0f, 2.5f },
+        neonPink
+    });
+    
+    // ==== CORNER BASES (Spawn/Rally Points) ====
+    // Northwest base structure
+    platforms.push_back({
+        (Vector3){ -35.0f, 1.5f, -35.0f },
+        (Vector3){ 15.0f, 3.0f, 15.0f },
+        (Color){ 60, 60, 80, 255 }
+    });
+    walls.push_back({
+        (Vector3){ -35.0f, 4.0f, -30.0f },
+        (Vector3){ 8.0f, 5.0f, 2.0f },
         darkGray
     });
     
-    // Corner cover - NorthEast
+    // Northeast base structure
+    platforms.push_back({
+        (Vector3){ 35.0f, 1.5f, -35.0f },
+        (Vector3){ 15.0f, 3.0f, 15.0f },
+        (Color){ 60, 60, 80, 255 }
+    });
     walls.push_back({
-        (Vector3){ 12.0f, 2.0f, -12.0f },
-        (Vector3){ 5.0f, 4.0f, 1.5f },
+        (Vector3){ 35.0f, 4.0f, -30.0f },
+        (Vector3){ 8.0f, 5.0f, 2.0f },
         darkGray
     });
     
-    // Corner cover - SouthWest
+    // Southwest base structure
+    platforms.push_back({
+        (Vector3){ -35.0f, 1.5f, 35.0f },
+        (Vector3){ 15.0f, 3.0f, 15.0f },
+        (Color){ 60, 60, 80, 255 }
+    });
     walls.push_back({
-        (Vector3){ -12.0f, 2.0f, 12.0f },
-        (Vector3){ 5.0f, 4.0f, 1.5f },
+        (Vector3){ -35.0f, 4.0f, 30.0f },
+        (Vector3){ 8.0f, 5.0f, 2.0f },
         darkGray
     });
     
-    // Corner cover - SouthEast
+    // Southeast base structure
+    platforms.push_back({
+        (Vector3){ 35.0f, 1.5f, 35.0f },
+        (Vector3){ 15.0f, 3.0f, 15.0f },
+        (Color){ 60, 60, 80, 255 }
+    });
     walls.push_back({
-        (Vector3){ 12.0f, 2.0f, 12.0f },
-        (Vector3){ 5.0f, 4.0f, 1.5f },
+        (Vector3){ 35.0f, 4.0f, 30.0f },
+        (Vector3){ 8.0f, 5.0f, 2.0f },
         darkGray
     });
     
-    // Side pillars for cover
+    // ==== MID-FIELD COVER STRUCTURES ====
+    // Horizontal cover walls (North-South axis)
     for (int i = -1; i <= 1; i += 2) {
-        for (int j = -1; j <= 1; j += 2) {
-            walls.push_back({
-                (Vector3){ i * 8.0f, 3.0f, j * 8.0f },
-                (Vector3){ 2.0f, 6.0f, 2.0f },
-                (Color){ 50, 50, 70, 255 }
-            });
-        }
+        // Long walls for strategic cover
+        walls.push_back({
+            (Vector3){ -25.0f, 2.5f, i * 18.0f },
+            (Vector3){ 12.0f, 5.0f, 2.0f },
+            mediumGray
+        });
+        walls.push_back({
+            (Vector3){ 25.0f, 2.5f, i * 18.0f },
+            (Vector3){ 12.0f, 5.0f, 2.0f },
+            mediumGray
+        });
+        
+        // Vertical cover walls (East-West axis)
+        walls.push_back({
+            (Vector3){ i * 18.0f, 2.5f, -25.0f },
+            (Vector3){ 2.0f, 5.0f, 12.0f },
+            mediumGray
+        });
+        walls.push_back({
+            (Vector3){ i * 18.0f, 2.5f, 25.0f },
+            (Vector3){ 2.0f, 5.0f, 12.0f },
+            mediumGray
+        });
     }
     
-    // Elevated platforms for tactical advantage
+    // ==== SCATTERED PILLARS (Tactical Cover Points) ====
+    // Creates a grid of cover throughout the map
+    int pillarPositions[][2] = {
+        {-40, -15}, {-40, 0}, {-40, 15},
+        {-15, -25}, {-15, 25},
+        {0, -40}, {0, -25}, {0, 25}, {0, 40},
+        {15, -25}, {15, 25},
+        {40, -15}, {40, 0}, {40, 15}
+    };
+    
+    for (auto& pos : pillarPositions) {
+        walls.push_back({
+            (Vector3){ (float)pos[0], 3.0f, (float)pos[1] },
+            (Vector3){ 2.5f, 6.0f, 2.5f },
+            (Color){ 50, 50, 70, 255 }
+        });
+    }
+    
+    // ==== ELEVATED SNIPER PLATFORMS ====
+    // North sniper position
     platforms.push_back({
-        (Vector3){ -15.0f, 2.5f, 0.0f },
-        (Vector3){ 4.0f, 0.5f, 8.0f },
-        (Color){ 60, 60, 80, 255 }
+        (Vector3){ 0.0f, 4.0f, -40.0f },
+        (Vector3){ 6.0f, 1.0f, 6.0f },
+        (Color){ 70, 40, 100, 255 }
     });
     
+    // South sniper position
     platforms.push_back({
-        (Vector3){ 15.0f, 2.5f, 0.0f },
-        (Vector3){ 4.0f, 0.5f, 8.0f },
-        (Color){ 60, 60, 80, 255 }
+        (Vector3){ 0.0f, 4.0f, 40.0f },
+        (Vector3){ 6.0f, 1.0f, 6.0f },
+        (Color){ 70, 40, 100, 255 }
+    });
+    
+    // East sniper position
+    platforms.push_back({
+        (Vector3){ 40.0f, 4.0f, 0.0f },
+        (Vector3){ 6.0f, 1.0f, 6.0f },
+        (Color){ 70, 40, 100, 255 }
+    });
+    
+    // West sniper position
+    platforms.push_back({
+        (Vector3){ -40.0f, 4.0f, 0.0f },
+        (Vector3){ 6.0f, 1.0f, 6.0f },
+        (Color){ 70, 40, 100, 255 }
     });
 }
 
@@ -113,11 +210,11 @@ void Map::draw() {
     // Draw ground with grid
     DrawPlane(groundPosition, groundSize, (Color){ 30, 30, 40, 255 });
     
-    // Draw neon grid
-    for (int i = -25; i <= 25; i += 2) {
-        DrawLine3D((Vector3){ (float)i, 0.01f, -25.0f }, (Vector3){ (float)i, 0.01f, 25.0f }, 
+    // Draw neon grid - larger scale for bigger map
+    for (int i = -60; i <= 60; i += 3) {
+        DrawLine3D((Vector3){ (float)i, 0.01f, -60.0f }, (Vector3){ (float)i, 0.01f, 60.0f }, 
                    (Color){ 0, 200, 255, 50 });
-        DrawLine3D((Vector3){ -25.0f, 0.01f, (float)i }, (Vector3){ 25.0f, 0.01f, (float)i }, 
+        DrawLine3D((Vector3){ -60.0f, 0.01f, (float)i }, (Vector3){ 60.0f, 0.01f, (float)i }, 
                    (Color){ 0, 200, 255, 50 });
     }
     
