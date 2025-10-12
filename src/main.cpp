@@ -1,6 +1,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <iostream>
+#include "privy_bridge.h"
 
 int main() {
     // Initialization
@@ -8,6 +9,14 @@ int main() {
     const int screenHeight = 600;
 
     InitWindow(screenWidth, screenHeight, "solfps.xyz - First Person Controller");
+    
+    // Initialize Privy Bridge
+    PrivyBridge::init();
+    
+    // Wallet state
+    bool walletConnected = false;
+    std::string walletAddress = "";
+    double solBalance = 0.0;
     
     // Define the camera to look into our 3D world (first person)
     Camera3D camera = { 0 };
@@ -95,6 +104,25 @@ int main() {
         // Update camera target
         camera.target = Vector3Add(camera.position, direction);
         
+        // Check wallet connection status
+        walletConnected = PrivyBridge::isWalletConnected();
+        
+        // Update wallet info if connected
+        if (walletConnected) {
+            walletAddress = PrivyBridge::getWalletAddress();
+            solBalance = PrivyBridge::getSolanaBalance();
+        }
+        
+        // Press C to connect wallet
+        if (IsKeyPressed(KEY_C) && !walletConnected) {
+            PrivyBridge::requestConnectWallet();
+        }
+        
+        // Press X to disconnect wallet
+        if (IsKeyPressed(KEY_X) && walletConnected) {
+            PrivyBridge::requestDisconnectWallet();
+        }
+        
         // Toggle cursor lock with ESC key
         if (IsKeyPressed(KEY_ESCAPE)) {
             if (IsCursorHidden()) EnableCursor();
@@ -124,14 +152,40 @@ int main() {
                 
             EndMode3D();
             
-            // Draw UI
-            DrawRectangle(10, 10, 320, 93, Fade(SKYBLUE, 0.5f));
-            DrawRectangleLines(10, 10, 320, 93, BLUE);
+            // Draw UI - Controls
+            DrawRectangle(10, 10, 320, 123, Fade(SKYBLUE, 0.5f));
+            DrawRectangleLines(10, 10, 320, 123, BLUE);
             DrawText("First Person Controller", 20, 20, 10, BLACK);
             DrawText("WASD - Move", 20, 40, 10, DARKGRAY);
             DrawText("MOUSE - Look around", 20, 55, 10, DARKGRAY);
             DrawText("SPACE/SHIFT - Up/Down", 20, 70, 10, DARKGRAY);
             DrawText("ESC - Toggle cursor", 20, 85, 10, DARKGRAY);
+            DrawText("C - Connect Wallet", 20, 100, 10, DARKGRAY);
+            DrawText("X - Disconnect Wallet", 20, 115, 10, DARKGRAY);
+            
+            // Draw Wallet Status
+            int walletUIY = 145;
+            DrawRectangle(10, walletUIY, 400, 95, Fade(DARKGREEN, 0.5f));
+            DrawRectangleLines(10, walletUIY, 400, 95, GREEN);
+            DrawText("Wallet Status", 20, walletUIY + 10, 10, WHITE);
+            
+            if (walletConnected) {
+                DrawText("Status: Connected", 20, walletUIY + 30, 10, LIME);
+                
+                // Show wallet address (truncated)
+                if (!walletAddress.empty()) {
+                    std::string truncatedAddress = walletAddress.length() > 20 
+                        ? walletAddress.substr(0, 8) + "..." + walletAddress.substr(walletAddress.length() - 8)
+                        : walletAddress;
+                    DrawText(TextFormat("Address: %s", truncatedAddress.c_str()), 20, walletUIY + 50, 10, WHITE);
+                }
+                
+                // Show SOL balance
+                DrawText(TextFormat("Balance: %.4f SOL", solBalance / 1000000000.0), 20, walletUIY + 70, 10, WHITE);
+            } else {
+                DrawText("Status: Not Connected", 20, walletUIY + 30, 10, RED);
+                DrawText("Press C to connect", 20, walletUIY + 55, 10, YELLOW);
+            }
             
             // Draw crosshair
             DrawLine(screenWidth / 2 - 10, screenHeight / 2, screenWidth / 2 + 10, screenHeight / 2, BLACK);
