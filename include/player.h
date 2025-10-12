@@ -14,6 +14,7 @@ public:
     float mouseSensitivity;
     float height;
     Vector3 velocity;
+    float forwardVelocity; // Track forward movement speed separately
     bool isGrounded;
     bool isSprinting;
     
@@ -47,6 +48,7 @@ public:
     void updateFootsteps(float deltaTime);
     Vector3 getForward();
     Vector3 getRight();
+    float getForwardSpeed(); // Get speed in forward direction only
 };
 
 #endif // PLAYER_H

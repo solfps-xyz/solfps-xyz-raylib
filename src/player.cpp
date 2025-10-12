@@ -20,6 +20,7 @@ Player::Player() {
     height = 1.8f;
     
     velocity = (Vector3){ 0.0f, 0.0f, 0.0f };
+    forwardVelocity = 0.0f;
     isGrounded = false;
     isSprinting = false;
     
@@ -109,13 +110,16 @@ void Player::handleInput(float deltaTime) {
     float currentSpeed = isSprinting ? sprintSpeed : moveSpeed;
     
     Vector3 moveDir = { 0.0f, 0.0f, 0.0f };
+    float forwardInput = 0.0f; // Track forward/backward input
     
     // WASD movement
     if (IsKeyDown(KEY_W)) {
         moveDir = Vector3Add(moveDir, flatForward);
+        forwardInput += 1.0f; // Moving forward
     }
     if (IsKeyDown(KEY_S)) {
         moveDir = Vector3Subtract(moveDir, flatForward);
+        forwardInput -= 1.0f; // Moving backward
     }
     if (IsKeyDown(KEY_A)) {
         moveDir = Vector3Subtract(moveDir, right);
@@ -133,10 +137,18 @@ void Player::handleInput(float deltaTime) {
         // Update horizontal velocity for footstep system
         velocity.x = moveDir.x / deltaTime;
         velocity.z = moveDir.z / deltaTime;
+        
+        // Track forward velocity separately (only W key, not strafing)
+        if (forwardInput > 0.0f) {
+            forwardVelocity = currentSpeed; // Moving forward
+        } else {
+            forwardVelocity = 0.0f; // Strafing or moving backward
+        }
     } else {
         // No horizontal movement
         velocity.x = 0.0f;
         velocity.z = 0.0f;
+        forwardVelocity = 0.0f;
     }
     
     // Jump
@@ -249,4 +261,8 @@ void Player::updateFootsteps(float deltaTime) {
     }
     
     lastHorizontalSpeed = horizontalSpeed;
+}
+
+float Player::getForwardSpeed() {
+    return forwardVelocity;
 }
