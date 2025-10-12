@@ -26,6 +26,7 @@ public:
     Map();
     void loadCyberpunkArena();
     void draw();
+    void drawSolanaLogo();
     bool checkCollision(Vector3 playerPos, float playerRadius, Vector3& correction);
     float getGroundHeight(Vector3 position);
 };

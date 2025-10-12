@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4.0)
-project(raylib-wasm-template)
+project(game)
 
 set(CMAKE_EXECUTABLE_SUFFIX ".js")
 set(CMAKE_C_STANDARD 99)

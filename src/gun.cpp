@@ -47,8 +47,10 @@ void Gun::applyRecoil() {
 }
 
 void Gun::drawSimple(Camera3D camera) {
-    // Disable depth test for weapon draw
+    // Save current depth test state
+    // Disable depth test for weapon draw (so it always appears on top of 3D world)
     rlDisableDepthTest();
+    rlDisableBackfaceCulling();
     
     // Calculate gun position relative to camera
     Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
@@ -97,6 +99,8 @@ void Gun::drawSimple(Camera3D camera) {
         DrawCubeWires(flashPos, 0.08f, 0.08f, 0.15f, (Color){ 255, 150, 0, 150 });
     }
     
+    // Restore depth test and backface culling
+    rlEnableBackfaceCulling();
     rlEnableDepthTest();
 }
 

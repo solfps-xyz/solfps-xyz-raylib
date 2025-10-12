@@ -1,6 +1,13 @@
 #include <raylib.h>
 #include <raymath.h>
+#include <rlgl.h>
 #include <iostream>
+
+#if defined(PLATFORM_WEB)
+    #include <emscripten/emscripten.h>
+    #include <GLES2/gl2.h>
+#endif
+
 #include "privy_bridge.h"
 #include "player.h"
 #include "map.h"
@@ -88,6 +95,7 @@ int main() {
         BeginDrawing();
             ClearBackground((Color){ 10, 10, 15, 255 }); // Dark cyberpunk background
             
+            // Draw 3D scene
             BeginMode3D(player.camera);
                 // Draw map
                 map.draw();
@@ -96,10 +104,18 @@ int main() {
                 
             EndMode3D();
             
-            // Draw gun viewmodel (after 3D scene, before UI)
+            // Draw gun viewmodel in 3D space but with depth disabled
             gun.draw(player.camera);
             
-            // Draw HUD
+            // Flush all 3D rendering and clear depth buffer for UI
+            rlDrawRenderBatchActive();
+            #if defined(PLATFORM_WEB)
+                glClear(GL_DEPTH_BUFFER_BIT);
+            #else
+                rlgl.State.framebufferWidth = 0; // Force depth clear
+            #endif
+            
+            // Draw HUD (direct 2D draw, no modes)
             UI::drawCrosshair(screenWidth, screenHeight);
             UI::drawGunHUD(player.ammo, player.maxAmmo, screenWidth, screenHeight);
             UI::drawHealthBar(playerHealth, maxHealth, screenWidth, screenHeight);
