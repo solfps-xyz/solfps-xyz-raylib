@@ -2,6 +2,7 @@
 #include <raylib.h>
 #include <raymath.h>
 #include <cmath>
+#include <iostream>
 
 Player::Player() {
     camera.position = (Vector3){ 0.0f, 2.0f, 5.0f };
@@ -120,6 +121,7 @@ void Player::applyGravity(float deltaTime) {
 }
 
 void Player::shoot() {
+    std::cout << "DEBUG Player::shoot() called!" << std::endl;
     isShooting = true;
     ammo--;
     shootCooldown = 0.1f; // 600 RPM
@@ -150,5 +152,6 @@ void Player::update(float deltaTime) {
     Vector3 direction = getForward();
     camera.target = Vector3Add(camera.position, direction);
     
-    isShooting = false;
+    // DON'T reset isShooting here - let main.cpp handle it after effects are processed
+    // isShooting = false;
 }

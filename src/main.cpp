@@ -74,8 +74,12 @@ int main() {
         // Update
         //----------------------------------------------------------------------------------
         
-        // Update player
+        // Update player (this will set isShooting if mouse is clicked)
         player.update(deltaTime);
+        
+        if (player.isShooting) {
+            std::cout << "DEBUG: player.isShooting = TRUE, player.ammo = " << player.ammo << std::endl;
+        }
         
         // Collision detection
         Vector3 correction;
@@ -83,7 +87,7 @@ int main() {
             player.camera.position = Vector3Add(player.camera.position, correction);
         }
         
-        // Update gun
+        // Update gun with the shooting state
         bool isMoving = IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D);
         gun.update(deltaTime, isMoving, player.isShooting);
         
@@ -92,7 +96,7 @@ int main() {
             // Raycast from camera position in forward direction
             Vector3 forward = Vector3Normalize(Vector3Subtract(player.camera.target, player.camera.position));
             Vector3 start = Vector3Add(player.camera.position, Vector3Scale(forward, 0.5f)); // Start slightly ahead
-            Vector3 end = Vector3Add(start, Vector3Scale(forward, 100.0f)); // 100 units range
+            Vector3 end = Vector3Add(start, Vector3Scale(forward, 300.0f)); // 300 units range (was 100)
             
             // Simple collision check with walls
             bool hitWall = false;
@@ -150,7 +154,10 @@ int main() {
             tracer.color = (Color){ 255, 255, 0, 255 }; // Bright yellow
             bulletTracers.push_back(tracer);
         }
+        
+        // Update lastShooting and reset the flag for next frame
         lastShooting = player.isShooting;
+        player.isShooting = false;
         
         // Update bullet tracers
         for (auto it = bulletTracers.begin(); it != bulletTracers.end();) {

@@ -3,6 +3,7 @@
 #include <raymath.h>
 #include <rlgl.h>
 #include <cmath>
+#include <iostream>
 
 Gun::Gun() {
     position = (Vector3){ 0.3f, -0.2f, 0.5f }; // Right side of screen
@@ -18,6 +19,11 @@ Gun::~Gun() {
 }
 
 void Gun::update(float deltaTime, bool isMoving, bool isShooting) {
+    // Debug output
+    if (isShooting) {
+        std::cout << "DEBUG Gun::update: isShooting = TRUE" << std::endl;
+    }
+    
     // Weapon bob while moving
     if (isMoving) {
         bobSpeed += deltaTime * 10.0f;
@@ -33,7 +39,7 @@ void Gun::update(float deltaTime, bool isMoving, bool isShooting) {
     }
     
     if (isRecoiling) {
-        recoilAngle -= deltaTime * 15.0f; // Recoil recovery
+        recoilAngle -= deltaTime * 12.0f; // Faster recoil recovery (was 8.0f)
         if (recoilAngle <= 0.0f) {
             recoilAngle = 0.0f;
             isRecoiling = false;
@@ -42,8 +48,9 @@ void Gun::update(float deltaTime, bool isMoving, bool isShooting) {
 }
 
 void Gun::applyRecoil() {
-    recoilAngle = 3.0f; // Kick up angle
+    recoilAngle = 2.5f; // Lighter kick (was 5.0f)
     isRecoiling = true;
+    std::cout << "Gun recoil applied! recoilAngle: " << recoilAngle << ", isRecoiling: " << isRecoiling << std::endl;
 }
 
 void Gun::drawSimple(Camera3D camera) {
@@ -66,9 +73,9 @@ void Gun::drawSimple(Camera3D camera) {
     gunPos = Vector3Add(gunPos, Vector3Scale(up, -0.15f + bobOffset)); // Down + bob
     gunPos = Vector3Add(gunPos, Vector3Scale(forward, 0.4f)); // Forward
     
-    // Apply recoil
-    gunPos = Vector3Add(gunPos, Vector3Scale(up, -recoilAngle * 0.02f));
-    gunPos = Vector3Add(gunPos, Vector3Scale(forward, -recoilAngle * 0.01f));
+    // Apply recoil with moderate kickback
+    gunPos = Vector3Add(gunPos, Vector3Scale(up, -recoilAngle * 0.03f));    // Kick up (was 0.05f)
+    gunPos = Vector3Add(gunPos, Vector3Scale(forward, -recoilAngle * 0.02f)); // Pull back (was 0.03f)
     
     // Draw simple gun body (rectangular prism)
     Color gunBody = (Color){ 40, 40, 45, 255 };
@@ -123,22 +130,26 @@ void Gun::drawSimple(Camera3D camera) {
     rlPopMatrix();
     
     // Muzzle flash (when shooting)
-    if (isRecoiling && recoilAngle > 2.5f) {
-        Vector3 flashPos = Vector3Add(barrelPos, Vector3Scale(forward, 0.1f));
-        
+    // Always show a dim barrel tip for reference
+    Vector3 flashPos = Vector3Add(barrelPos, Vector3Scale(forward, 0.1f));
+    
+    if (isRecoiling) { // Simplified - show whenever recoiling
         // Multiple layers for a more visible flash (spheres don't need rotation)
-        DrawSphere(flashPos, 0.08f, (Color){ 255, 255, 0, 255 });
-        DrawSphere(flashPos, 0.12f, (Color){ 255, 150, 0, 180 });
-        DrawSphere(flashPos, 0.16f, (Color){ 255, 100, 0, 100 });
+        DrawSphere(flashPos, 0.15f, (Color){ 255, 255, 0, 255 });
+        DrawSphere(flashPos, 0.2f, (Color){ 255, 150, 0, 220 });
+        DrawSphere(flashPos, 0.25f, (Color){ 255, 100, 0, 150 });
         
         // Flash cone
         rlPushMatrix();
             rlTranslatef(flashPos.x, flashPos.y, flashPos.z);
             rlRotatef(yaw, 0, 1, 0);
             rlRotatef(-pitch, 1, 0, 0);
-            DrawCube((Vector3){0, 0, 0}, 0.1f, 0.1f, 0.15f, (Color){ 255, 200, 0, 220 });
-            DrawCubeWires((Vector3){0, 0, 0}, 0.15f, 0.15f, 0.2f, (Color){ 255, 255, 255, 180 });
+            DrawCube((Vector3){0, 0, 0}, 0.15f, 0.15f, 0.25f, (Color){ 255, 200, 0, 240 });
+            DrawCubeWires((Vector3){0, 0, 0}, 0.2f, 0.2f, 0.3f, (Color){ 255, 255, 255, 220 });
         rlPopMatrix();
+    } else {
+        // When not shooting, show a small cyan sight dot at the barrel tip
+        DrawSphere(flashPos, 0.02f, (Color){ 0, 255, 255, 100 });
     }
 }
 
