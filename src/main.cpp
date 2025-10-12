@@ -220,11 +220,15 @@ int main() {
         // Draw
         //----------------------------------------------------------------------------------
         BeginDrawing();
-            ClearBackground((Color){ 10, 10, 15, 255 }); // Dark cyberpunk background
+            ClearBackground((Color){ 5, 5, 10, 255 }); // Darker cyberpunk background
             
             // Draw 3D scene
             BeginMode3D(player.camera);
-                // Draw map
+                // Setup lighting for better depth perception
+                // Directional light from above-front for ambient occlusion feel
+                Vector3 lightPos = { player.camera.position.x, player.camera.position.y + 20.0f, player.camera.position.z + 10.0f };
+                
+                // Draw map with fog effect
                 map.draw();
                 
                 // Draw bullet tracers
@@ -258,6 +262,33 @@ int main() {
                               (Color){ particle.color.r, particle.color.g, particle.color.b, (unsigned char)(alpha * 0.5f) });
                 }
                 
+                // Muzzle flash dynamic lighting - light up the area when shooting
+                if (gun.isRecoiling && gun.recoilAngle > 0.5f) {
+                    // Calculate muzzle position
+                    Vector3 forward = Vector3Normalize(Vector3Subtract(player.camera.target, player.camera.position));
+                    Vector3 right = Vector3Normalize(Vector3CrossProduct(forward, player.camera.up));
+                    Vector3 up = Vector3Normalize(Vector3CrossProduct(right, forward));
+                    
+                    Vector3 muzzlePos = player.camera.position;
+                    muzzlePos = Vector3Add(muzzlePos, Vector3Scale(right, 0.25f));
+                    muzzlePos = Vector3Add(muzzlePos, Vector3Scale(up, -0.15f));
+                    muzzlePos = Vector3Add(muzzlePos, Vector3Scale(forward, 0.68f)); // At barrel tip
+                    
+                    // Bright spherical light source
+                    float lightIntensity = gun.recoilAngle / 2.5f; // Fades with recoil
+                    float lightRadius = 8.0f + lightIntensity * 4.0f; // Dynamic size
+                    
+                    // Draw multiple light spheres for volumetric effect
+                    DrawSphere(muzzlePos, lightRadius, (Color){ 255, 200, 100, 15 });
+                    DrawSphere(muzzlePos, lightRadius * 0.7f, (Color){ 255, 220, 150, 25 });
+                    DrawSphere(muzzlePos, lightRadius * 0.4f, (Color){ 255, 240, 200, 40 });
+                    
+                    // Cast light rays in forward direction
+                    Vector3 lightEnd = Vector3Add(muzzlePos, Vector3Scale(forward, 15.0f));
+                    DrawCylinderEx(muzzlePos, lightEnd, lightRadius * 0.6f, 0.1f, 8,
+                                  (Color){ 255, 230, 180, (unsigned char)(20 * lightIntensity) });
+                }
+                
             EndMode3D();
             
             // Clear depth buffer for gun rendering (so it appears on top)
@@ -270,6 +301,13 @@ int main() {
                 gun.drawSimple(player.camera);
             EndMode3D();
             
+            // Muzzle flash screen overlay (brightens entire screen slightly)
+            if (gun.isRecoiling && gun.recoilAngle > 1.0f) {
+                float flashIntensity = (gun.recoilAngle / 2.5f) * 40.0f;
+                DrawRectangle(0, 0, screenWidth, screenHeight,
+                             (Color){ 255, 220, 150, (unsigned char)flashIntensity });
+            }
+            
             // NOW clear depth buffer for UI rendering
             rlDrawRenderBatchActive();
             #if defined(PLATFORM_WEB)
@@ -277,6 +315,32 @@ int main() {
             #else
                 rlgl.State.framebufferWidth = 0; // Force depth clear
             #endif
+            
+            // Post-processing effects
+            // Vignette effect - darken edges of screen
+            int vignetteSize = 300; // How far the vignette extends inward
+            int steps = 12; // Gradient smoothness
+            
+            for (int i = 0; i < steps; i++) {
+                float t = (float)i / (float)steps;
+                float alpha = 35.0f * t * t; // Quadratic falloff for smooth gradient
+                float inset = vignetteSize * (1.0f - t);
+                
+                // Top bar
+                DrawRectangle(0, (int)inset, screenWidth, 1, (Color){ 0, 0, 0, (unsigned char)alpha });
+                // Bottom bar
+                DrawRectangle(0, screenHeight - (int)inset, screenWidth, 1, (Color){ 0, 0, 0, (unsigned char)alpha });
+                // Left bar
+                DrawRectangle((int)inset, 0, 1, screenHeight, (Color){ 0, 0, 0, (unsigned char)alpha });
+                // Right bar
+                DrawRectangle(screenWidth - (int)inset, 0, 1, screenHeight, (Color){ 0, 0, 0, (unsigned char)alpha });
+            }
+            
+            // Subtle chromatic aberration/glow around screen edges
+            DrawRectangleLinesEx((Rectangle){ 0, 0, (float)screenWidth, (float)screenHeight },
+                                2.0f, (Color){ 0, 120, 180, 20 });
+            DrawRectangleLinesEx((Rectangle){ 3, 3, screenWidth - 6.0f, screenHeight - 6.0f },
+                                1.0f, (Color){ 120, 50, 180, 15 });
             
             // Draw HUD (direct 2D draw, no modes)
             UI::drawCrosshair(screenWidth, screenHeight);

@@ -207,37 +207,69 @@ void Map::loadCyberpunkArena() {
 }
 
 void Map::draw() {
-    // Draw ground with grid
-    DrawPlane(groundPosition, groundSize, (Color){ 30, 30, 40, 255 });
+    // Draw ground with darker color for depth
+    DrawPlane(groundPosition, groundSize, (Color){ 15, 15, 25, 255 });
     
-    // Draw neon grid - larger scale for bigger map
+    // Draw neon grid - dimmer for better depth perception
     for (int i = -60; i <= 60; i += 3) {
         DrawLine3D((Vector3){ (float)i, 0.01f, -60.0f }, (Vector3){ (float)i, 0.01f, 60.0f }, 
-                   (Color){ 0, 200, 255, 50 });
+                   (Color){ 0, 150, 200, 35 });
         DrawLine3D((Vector3){ -60.0f, 0.01f, (float)i }, (Vector3){ 60.0f, 0.01f, (float)i }, 
-                   (Color){ 0, 200, 255, 50 });
+                   (Color){ 0, 150, 200, 35 });
     }
     
     // Draw Solana logo in the sky
     drawSolanaLogo();
     
-    // Draw walls
+    // Draw walls with shadows and ambient occlusion
     for (const auto& wall : walls) {
+        // Main wall
         DrawCube(wall.position, wall.size.x, wall.size.y, wall.size.z, wall.color);
+        
+        // Brighter wireframe for depth
         Color wireColor = {
-            (unsigned char)Clamp(wall.color.r + 50, 0, 255),
-            (unsigned char)Clamp(wall.color.g + 50, 0, 255),
-            (unsigned char)Clamp(wall.color.b + 50, 0, 255),
+            (unsigned char)Clamp(wall.color.r + 80, 0, 255),
+            (unsigned char)Clamp(wall.color.g + 80, 0, 255),
+            (unsigned char)Clamp(wall.color.b + 80, 0, 255),
             255
         };
         DrawCubeWires(wall.position, wall.size.x, wall.size.y, wall.size.z, wireColor);
+        
+        // Fake shadow on ground (ambient occlusion effect)
+        Vector3 shadowPos = wall.position;
+        shadowPos.y = 0.02f;
+        DrawCube(shadowPos, wall.size.x * 0.85f, 0.01f, wall.size.z * 0.85f, 
+                (Color){ 0, 0, 0, 90 });
+        
+        // Glow at base for neon walls
+        if (wall.color.r > 100 || wall.color.g > 100 || wall.color.b > 200) {
+            Vector3 glowPos = wall.position;
+            glowPos.y = 0.1f;
+            DrawCube(glowPos, wall.size.x * 1.1f, 0.15f, wall.size.z * 1.1f,
+                    (Color){ wall.color.r, wall.color.g, wall.color.b, 35 });
+        }
     }
     
-    // Draw platforms
+    // Draw platforms with depth and glow
     for (const auto& platform : platforms) {
+        // Main platform
         DrawCube(platform.position, platform.size.x, platform.size.y, platform.size.z, platform.color);
+        
+        // Bright wireframe
         DrawCubeWires(platform.position, platform.size.x, platform.size.y, platform.size.z, 
-                     (Color){ 100, 255, 255, 255 });
+                     (Color){ 150, 255, 255, 255 });
+        
+        // Shadow below platform
+        Vector3 shadowPos = platform.position;
+        shadowPos.y = 0.02f;
+        DrawCube(shadowPos, platform.size.x * 0.9f, 0.01f, platform.size.z * 0.9f,
+                (Color){ 0, 0, 0, 120 });
+        
+        // Purple glow underneath
+        Vector3 underGlow = platform.position;
+        underGlow.y -= platform.size.y * 0.5f + 0.3f;
+        DrawCube(underGlow, platform.size.x * 0.85f, 0.1f, platform.size.z * 0.85f,
+                (Color){ 120, 50, 180, 60 });
     }
 }
 
