@@ -121,6 +121,9 @@ void Map::draw() {
                    (Color){ 0, 200, 255, 50 });
     }
     
+    // Draw Solana logo in the sky
+    drawSolanaLogo();
+    
     // Draw walls
     for (const auto& wall : walls) {
         DrawCube(wall.position, wall.size.x, wall.size.y, wall.size.z, wall.color);
@@ -139,6 +142,67 @@ void Map::draw() {
         DrawCubeWires(platform.position, platform.size.x, platform.size.y, platform.size.z, 
                      (Color){ 100, 255, 255, 255 });
     }
+}
+
+void Map::drawSolanaLogo() {
+    // Position logo high in the sky, facing DOWN toward player
+    Vector3 logoCenter = (Vector3){ 0.0f, 50.0f, 0.0f };
+    float scale = 8.0f;
+    
+    // Authentic Solana gradient colors
+    Color cyan = (Color){ 0, 255, 199, 255 };        // Cyan/turquoise
+    Color blue = (Color){ 102, 178, 255, 255 };      // Blue
+    Color purple = (Color){ 153, 102, 255, 255 };    // Purple
+    Color magenta = (Color){ 220, 31, 255, 255 };    // Magenta
+    
+    // Create three parallelogram chevrons
+    float barLength = scale * 3.5f;
+    float barHeight = scale * 0.65f;
+    float barThickness = scale * 0.12f;
+    float spacing = scale * 1.2f;
+    float slantAmount = scale * 1.0f; // How much the ends are offset to create chevron
+    
+    // Helper to draw a parallelogram chevron
+    auto drawChevron = [](Vector3 basePos, float length, float height, float thickness, 
+                          float slant, Color startColor, Color endColor, int segments) {
+        // Draw segments that create a parallelogram shape
+        // Left side starts lower, right side ends higher (creating the chevron pointing right)
+        for (int i = 0; i < segments; i++) {
+            float t = (float)i / (float)(segments - 1);
+            
+            Color gradColor = (Color){
+                (unsigned char)(startColor.r * (1-t) + endColor.r * t),
+                (unsigned char)(startColor.g * (1-t) + endColor.g * t),
+                (unsigned char)(startColor.b * (1-t) + endColor.b * t),
+                255
+            };
+            
+            // Position along the length
+            float xPos = (t - 0.5f) * length;
+            
+            // Create slant: as we go from left to right (increasing x), z increases
+            // This creates the parallelogram/chevron shape pointing right
+            float zOffset = (t - 0.5f) * slant;
+            
+            Vector3 pos = Vector3Add(basePos, (Vector3){ xPos, 0.0f, zOffset });
+            
+            DrawCube(pos, length / (segments - 1) * 1.2f, thickness, height, gradColor);
+        }
+    };
+    
+    // TOP CHEVRON (cyan to blue gradient)
+    Vector3 topPos = Vector3Add(logoCenter, (Vector3){ -slantAmount * 0.15f, 0.0f, spacing });
+    drawChevron(topPos, barLength, barHeight, barThickness, slantAmount, cyan, blue, 16);
+    
+    // MIDDLE CHEVRON (blue to purple gradient)
+    drawChevron(logoCenter, barLength, barHeight, barThickness, slantAmount, blue, purple, 16);
+    
+    // BOTTOM CHEVRON (purple to magenta gradient)
+    Vector3 bottomPos = Vector3Add(logoCenter, (Vector3){ slantAmount * 0.15f, 0.0f, -spacing });
+    drawChevron(bottomPos, barLength, barHeight, barThickness, slantAmount, purple, magenta, 16);
+    
+    // Add subtle glow
+    DrawSphere(logoCenter, scale * 4.5f, (Color){ 102, 178, 255, 10 });
 }
 
 bool Map::checkCollision(Vector3 playerPos, float playerRadius, Vector3& correction) {
