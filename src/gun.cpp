@@ -47,15 +47,18 @@ void Gun::applyRecoil() {
 }
 
 void Gun::drawSimple(Camera3D camera) {
-    // Save current depth test state
-    // Disable depth test for weapon draw (so it always appears on top of 3D world)
-    rlDisableDepthTest();
-    rlDisableBackfaceCulling();
+    // Gun is now drawn in its own BeginMode3D with cleared depth buffer
+    // No need to manually disable depth test
     
-    // Calculate gun position relative to camera
+    // Calculate gun position relative to camera orientation
     Vector3 forward = Vector3Normalize(Vector3Subtract(camera.target, camera.position));
     Vector3 right = Vector3Normalize(Vector3CrossProduct(forward, camera.up));
     Vector3 up = Vector3Normalize(Vector3CrossProduct(right, forward));
+    
+    // Calculate gun orientation angle (yaw around Y axis)
+    float yaw = atan2f(forward.x, forward.z) * RAD2DEG;
+    // Calculate pitch
+    float pitch = asinf(forward.y) * RAD2DEG;
     
     // Gun base position (right side, slightly down, forward)
     Vector3 gunPos = camera.position;
@@ -71,37 +74,72 @@ void Gun::drawSimple(Camera3D camera) {
     Color gunBody = (Color){ 40, 40, 45, 255 };
     Color gunAccent = (Color){ 0, 200, 255, 255 }; // Neon cyan
     
-    // Main body
-    DrawCube(gunPos, 0.08f, 0.08f, 0.3f, gunBody);
+    // Main body - oriented along forward direction with rotation
+    rlPushMatrix();
+        rlTranslatef(gunPos.x, gunPos.y, gunPos.z);
+        rlRotatef(yaw, 0, 1, 0);
+        rlRotatef(-pitch, 1, 0, 0);
+        DrawCube((Vector3){0, 0, 0}, 0.08f, 0.08f, 0.3f, gunBody);
+        DrawCubeWires((Vector3){0, 0, 0}, 0.08f, 0.08f, 0.3f, Fade(gunAccent, 0.3f));
+    rlPopMatrix();
     
     // Barrel
     Vector3 barrelPos = Vector3Add(gunPos, Vector3Scale(forward, 0.2f));
-    DrawCube(barrelPos, 0.02f, 0.02f, 0.15f, (Color){ 60, 60, 65, 255 });
+    rlPushMatrix();
+        rlTranslatef(barrelPos.x, barrelPos.y, barrelPos.z);
+        rlRotatef(yaw, 0, 1, 0);
+        rlRotatef(-pitch, 1, 0, 0);
+        DrawCube((Vector3){0, 0, 0}, 0.02f, 0.02f, 0.15f, (Color){ 60, 60, 65, 255 });
+    rlPopMatrix();
     
     // Magazine
     Vector3 magPos = Vector3Add(gunPos, Vector3Scale(up, -0.06f));
-    DrawCube(magPos, 0.04f, 0.08f, 0.12f, gunBody);
+    rlPushMatrix();
+        rlTranslatef(magPos.x, magPos.y, magPos.z);
+        rlRotatef(yaw, 0, 1, 0);
+        rlRotatef(-pitch, 1, 0, 0);
+        DrawCube((Vector3){0, 0, 0}, 0.04f, 0.08f, 0.12f, gunBody);
+    rlPopMatrix();
     
     // Neon sight
     Vector3 sightPos = Vector3Add(gunPos, Vector3Scale(up, 0.05f));
     sightPos = Vector3Add(sightPos, Vector3Scale(forward, 0.05f));
-    DrawCube(sightPos, 0.01f, 0.02f, 0.01f, gunAccent);
+    rlPushMatrix();
+        rlTranslatef(sightPos.x, sightPos.y, sightPos.z);
+        rlRotatef(yaw, 0, 1, 0);
+        rlRotatef(-pitch, 1, 0, 0);
+        DrawCube((Vector3){0, 0, 0}, 0.01f, 0.02f, 0.01f, gunAccent);
+    rlPopMatrix();
+    DrawSphere(sightPos, 0.015f, Fade(gunAccent, 0.5f)); // Glow (spheres don't need rotation)
     
     // Grip
     Vector3 gripPos = Vector3Add(gunPos, Vector3Scale(up, -0.04f));
     gripPos = Vector3Add(gripPos, Vector3Scale(forward, -0.08f));
-    DrawCube(gripPos, 0.03f, 0.06f, 0.08f, (Color){ 30, 30, 35, 255 });
+    rlPushMatrix();
+        rlTranslatef(gripPos.x, gripPos.y, gripPos.z);
+        rlRotatef(yaw, 0, 1, 0);
+        rlRotatef(-pitch, 1, 0, 0);
+        DrawCube((Vector3){0, 0, 0}, 0.03f, 0.06f, 0.08f, (Color){ 30, 30, 35, 255 });
+    rlPopMatrix();
     
     // Muzzle flash (when shooting)
     if (isRecoiling && recoilAngle > 2.5f) {
         Vector3 flashPos = Vector3Add(barrelPos, Vector3Scale(forward, 0.1f));
-        DrawCube(flashPos, 0.05f, 0.05f, 0.1f, (Color){ 255, 200, 0, 200 });
-        DrawCubeWires(flashPos, 0.08f, 0.08f, 0.15f, (Color){ 255, 150, 0, 150 });
+        
+        // Multiple layers for a more visible flash (spheres don't need rotation)
+        DrawSphere(flashPos, 0.08f, (Color){ 255, 255, 0, 255 });
+        DrawSphere(flashPos, 0.12f, (Color){ 255, 150, 0, 180 });
+        DrawSphere(flashPos, 0.16f, (Color){ 255, 100, 0, 100 });
+        
+        // Flash cone
+        rlPushMatrix();
+            rlTranslatef(flashPos.x, flashPos.y, flashPos.z);
+            rlRotatef(yaw, 0, 1, 0);
+            rlRotatef(-pitch, 1, 0, 0);
+            DrawCube((Vector3){0, 0, 0}, 0.1f, 0.1f, 0.15f, (Color){ 255, 200, 0, 220 });
+            DrawCubeWires((Vector3){0, 0, 0}, 0.15f, 0.15f, 0.2f, (Color){ 255, 255, 255, 180 });
+        rlPopMatrix();
     }
-    
-    // Restore depth test and backface culling
-    rlEnableBackfaceCulling();
-    rlEnableDepthTest();
 }
 
 void Gun::draw(Camera3D camera) {
