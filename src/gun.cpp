@@ -49,9 +49,9 @@ Gun::~Gun() {
     UnloadSound(shootSound);
 }
 
-void Gun::update(float deltaTime, bool isMoving, bool isShooting, bool isSprinting) {
-    // Weapon bob while moving (not sprinting)
-    if (isMoving && !isSprinting) {
+void Gun::update(float deltaTime, bool isMoving, bool isShooting, bool isSprinting, bool isCrouching) {
+    // Weapon bob while moving (not sprinting or crouching)
+    if (isMoving && !isSprinting && !isCrouching) {
         bobSpeed += deltaTime * 10.0f;
         bobOffset = sinf(bobSpeed) * 0.02f;
     } else {
@@ -63,8 +63,8 @@ void Gun::update(float deltaTime, bool isMoving, bool isShooting, bool isSprinti
     float targetTilt = 0.0f;
     float targetOffset = 0.0f;
     
-    // When shooting, immediately cancel sprint animation
-    if (isShooting) {
+    // When shooting or crouching, immediately cancel sprint animation
+    if (isShooting || isCrouching) {
         targetTilt = 0.0f;
         targetOffset = 0.0f;
     } else if (isSprinting) {

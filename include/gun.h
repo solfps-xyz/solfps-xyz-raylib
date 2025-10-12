@@ -22,7 +22,7 @@ public:
     
     Gun();
     ~Gun();
-    void update(float deltaTime, bool isMoving, bool isShooting, bool isSprinting);
+    void update(float deltaTime, bool isMoving, bool isShooting, bool isSprinting, bool isCrouching);
     void draw(Camera3D camera);
     void drawSimple(Camera3D camera); // Simple gun for now without model
     void applyRecoil();

@@ -106,15 +106,16 @@ void UI::drawControls() {
     int x = 20;
     int y = 120;
     
-    DrawRectangle(x, y, 200, 135, Fade((Color){ 20, 20, 30, 255 }, 0.7f));
-    DrawRectangleLines(x, y, 200, 135, (Color){ 0, 200, 255, 255 });
+    DrawRectangle(x, y, 200, 150, Fade((Color){ 20, 20, 30, 255 }, 0.7f));
+    DrawRectangleLines(x, y, 200, 150, (Color){ 0, 200, 255, 255 });
     
     DrawText("CONTROLS", x + 10, y + 8, 10, (Color){ 0, 200, 255, 255 });
     DrawText("WASD - Move", x + 10, y + 25, 9, LIGHTGRAY);
     DrawText("SHIFT - Sprint", x + 10, y + 40, 9, LIGHTGRAY);
-    DrawText("SPACE - Jump", x + 10, y + 55, 9, LIGHTGRAY);
-    DrawText("MOUSE - Look", x + 10, y + 70, 9, LIGHTGRAY);
-    DrawText("LEFT CLICK - Shoot", x + 10, y + 85, 9, LIGHTGRAY);
-    DrawText("R - Reload", x + 10, y + 100, 9, LIGHTGRAY);
-    DrawText("ESC - Unlock Cursor", x + 10, y + 115, 9, LIGHTGRAY);
+    DrawText("C - Crouch", x + 10, y + 55, 9, LIGHTGRAY);
+    DrawText("SPACE - Jump", x + 10, y + 70, 9, LIGHTGRAY);
+    DrawText("MOUSE - Look", x + 10, y + 85, 9, LIGHTGRAY);
+    DrawText("LEFT CLICK - Shoot", x + 10, y + 100, 9, LIGHTGRAY);
+    DrawText("R - Reload", x + 10, y + 115, 9, LIGHTGRAY);
+    DrawText("ESC - Unlock Cursor", x + 10, y + 130, 9, LIGHTGRAY);
 }

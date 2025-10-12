@@ -16,13 +16,18 @@ Player::Player() {
     pitch = 0.0f;
     moveSpeed = 5.0f;
     sprintSpeed = 8.0f;
+    crouchSpeed = 2.5f; // Half of normal speed
     mouseSensitivity = 0.003f;
-    height = 1.8f;
+    standingHeight = 1.8f;
+    crouchHeight = 1.0f; // Lower crouch height
+    height = standingHeight;
+    currentHeight = standingHeight;
     
     velocity = (Vector3){ 0.0f, 0.0f, 0.0f };
     forwardVelocity = 0.0f;
     isGrounded = false;
     isSprinting = false;
+    isCrouching = false;
     
     // Gun state
     isShooting = false;
@@ -38,7 +43,7 @@ Player::Player() {
     footstepInterval = 0.4f; // Time between footsteps (will adjust based on speed)
     lastHorizontalSpeed = 0.0f;
     
-    // Load footstep sounds
+    // Load footstep sounds and pre-create all instances
     #if defined(PLATFORM_WEB)
         for (int i = 0; i < MAX_FOOTSTEP_SOUNDS; i++) {
             char path[256];
@@ -46,6 +51,11 @@ Player::Player() {
             if (FileExists(path)) {
                 footstepSounds[i] = LoadSound(path);
                 SetSoundVolume(footstepSounds[i], 0.3f); // Lower volume for footsteps
+                
+                // Pre-create instances for each sound
+                for (int j = 0; j < MAX_FOOTSTEP_INSTANCES; j++) {
+                    footstepInstances[i][j] = LoadSoundAlias(footstepSounds[i]);
+                }
             }
         }
     #else
@@ -54,19 +64,21 @@ Player::Player() {
             snprintf(path, sizeof(path), "assets/character/audio/footsteps/Floor_step%d.wav", i);
             footstepSounds[i] = LoadSound(path);
             SetSoundVolume(footstepSounds[i], 0.3f);
+            
+            // Pre-create instances for each sound
+            for (int j = 0; j < MAX_FOOTSTEP_INSTANCES; j++) {
+                footstepInstances[i][j] = LoadSoundAlias(footstepSounds[i]);
+            }
         }
     #endif
-    
-    // Create sound instances for multi-channel playback
-    for (int i = 0; i < MAX_FOOTSTEP_INSTANCES; i++) {
-        footstepInstances[i] = LoadSoundAlias(footstepSounds[0]); // Start with first sound
-    }
 }
 
 Player::~Player() {
     // Cleanup footstep sound instances
-    for (int i = 0; i < MAX_FOOTSTEP_INSTANCES; i++) {
-        UnloadSoundAlias(footstepInstances[i]);
+    for (int i = 0; i < MAX_FOOTSTEP_SOUNDS; i++) {
+        for (int j = 0; j < MAX_FOOTSTEP_INSTANCES; j++) {
+            UnloadSoundAlias(footstepInstances[i][j]);
+        }
     }
     // Cleanup footstep sounds
     for (int i = 0; i < MAX_FOOTSTEP_SOUNDS; i++) {
@@ -105,9 +117,23 @@ void Player::handleInput(float deltaTime) {
     flatForward = Vector3Normalize(flatForward);
     Vector3 right = getRight();
     
-    // Sprint
-    isSprinting = IsKeyDown(KEY_LEFT_SHIFT) && IsKeyDown(KEY_W);
-    float currentSpeed = isSprinting ? sprintSpeed : moveSpeed;
+    // Crouch toggle
+    if (IsKeyPressed(KEY_C)) {
+        isCrouching = !isCrouching;
+    }
+    
+    // Can't sprint while crouching
+    isSprinting = IsKeyDown(KEY_LEFT_SHIFT) && IsKeyDown(KEY_W) && !isCrouching;
+    
+    // Determine current speed based on state
+    float currentSpeed;
+    if (isCrouching) {
+        currentSpeed = crouchSpeed; // Slow when crouching
+    } else if (isSprinting) {
+        currentSpeed = sprintSpeed; // Fast when sprinting
+    } else {
+        currentSpeed = moveSpeed; // Normal speed
+    }
     
     Vector3 moveDir = { 0.0f, 0.0f, 0.0f };
     float forwardInput = 0.0f; // Track forward/backward input
@@ -169,15 +195,21 @@ void Player::handleInput(float deltaTime) {
 }
 
 void Player::applyGravity(float deltaTime) {
+    // Smoothly interpolate height when crouching/standing
+    float targetHeight = isCrouching ? crouchHeight : standingHeight;
+    currentHeight += (targetHeight - currentHeight) * deltaTime * 8.0f; // Smooth transition
+    
     if (!isGrounded) {
         velocity.y -= 20.0f * deltaTime; // Gravity
+        camera.position.y += velocity.y * deltaTime;
+    } else {
+        // When grounded, smoothly adjust camera height for crouch/stand
+        camera.position.y = currentHeight;
     }
     
-    camera.position.y += velocity.y * deltaTime;
-    
-    // Simple ground check
-    if (camera.position.y <= height) {
-        camera.position.y = height;
+    // Simple ground check with current height
+    if (camera.position.y <= currentHeight) {
+        camera.position.y = currentHeight;
         velocity.y = 0.0f;
         isGrounded = true;
     }
@@ -225,12 +257,8 @@ void Player::playFootstep() {
     // Cycle through the 9 different footstep sounds
     currentFootstepIndex = (currentFootstepIndex + 1) % MAX_FOOTSTEP_SOUNDS;
     
-    // Update the current instance to use the new sound
-    UnloadSoundAlias(footstepInstances[currentInstanceIndex]);
-    footstepInstances[currentInstanceIndex] = LoadSoundAlias(footstepSounds[currentFootstepIndex]);
-    
-    // Play the sound on the current instance
-    PlaySound(footstepInstances[currentInstanceIndex]);
+    // Play the pre-loaded sound instance (no loading/unloading needed!)
+    PlaySound(footstepInstances[currentFootstepIndex][currentInstanceIndex]);
     
     // Move to next instance for multi-channel support
     currentInstanceIndex = (currentInstanceIndex + 1) % MAX_FOOTSTEP_INSTANCES;

@@ -86,9 +86,9 @@ int main() {
             player.camera.position = Vector3Add(player.camera.position, correction);
         }
         
-        // Update gun with movement and sprint state
+        // Update gun with movement, sprint, and crouch state
         bool isMoving = IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D);
-        gun.update(deltaTime, isMoving, player.isShooting, player.isSprinting);
+        gun.update(deltaTime, isMoving, player.isShooting, player.isSprinting, player.isCrouching);
         
         // Create bullet tracer when shooting
         if (player.isShooting && !lastShooting) {

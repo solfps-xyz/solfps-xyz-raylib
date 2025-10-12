@@ -17,6 +17,11 @@ public:
     float forwardVelocity; // Track forward movement speed separately
     bool isGrounded;
     bool isSprinting;
+    bool isCrouching;
+    float crouchSpeed;
+    float crouchHeight;
+    float standingHeight;
+    float currentHeight; // Smoothly interpolated height
     
     // Gun state
     bool isShooting;
@@ -29,7 +34,7 @@ public:
     static const int MAX_FOOTSTEP_SOUNDS = 9;
     static const int MAX_FOOTSTEP_INSTANCES = 4; // Multi-channel support
     Sound footstepSounds[MAX_FOOTSTEP_SOUNDS];
-    Sound footstepInstances[MAX_FOOTSTEP_INSTANCES];
+    Sound footstepInstances[MAX_FOOTSTEP_SOUNDS][MAX_FOOTSTEP_INSTANCES]; // Pre-load all instances
     int currentFootstepIndex;
     int currentInstanceIndex;
     float footstepTimer;
