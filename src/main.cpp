@@ -58,8 +58,6 @@ int main() {
     map.loadCyberpunkArena();
     
     // Player stats
-    float playerHealth = 100.0f;
-    float maxHealth = 100.0f;
     float playerRadius = 0.4f;
     
     // Effects system
@@ -79,6 +77,14 @@ int main() {
         
         // Update player (this will set isShooting if mouse is clicked)
         player.update(deltaTime);
+        
+        // Regenerate health over time
+        player.regenerateHealth(deltaTime);
+        
+        // Test damage system (T key for testing)
+        if (IsKeyPressed(KEY_T)) {
+            player.takeDamage(15.0f);
+        }
         
         // Collision detection
         Vector3 correction;
@@ -308,6 +314,25 @@ int main() {
                              (Color){ 255, 220, 150, (unsigned char)flashIntensity });
             }
             
+            // Damage flash overlay (red vignette when taking damage)
+            if (player.damageFlashTimer > 0.0f) {
+                float flashAlpha = (player.damageFlashTimer / 0.3f) * 150.0f; // Fade out
+                DrawRectangle(0, 0, screenWidth, screenHeight,
+                             Fade((Color){ 255, 0, 0, 255 }, flashAlpha / 255.0f));
+                
+                // Red vignette edges for damage feedback
+                int vignetteSteps = 8;
+                for (int i = 0; i < vignetteSteps; i++) {
+                    float t = (float)i / vignetteSteps;
+                    float alpha = (1.0f - t) * flashAlpha * 0.5f;
+                    int inset = (int)(t * 200.0f);
+                    
+                    DrawRectangleLinesEx((Rectangle){ (float)inset, (float)inset, 
+                                        screenWidth - inset * 2.0f, screenHeight - inset * 2.0f },
+                                        1.0f, (Color){ 255, 50, 50, (unsigned char)alpha });
+                }
+            }
+            
             // NOW clear depth buffer for UI rendering
             rlDrawRenderBatchActive();
             #if defined(PLATFORM_WEB)
@@ -345,7 +370,7 @@ int main() {
             // Draw HUD (direct 2D draw, no modes)
             UI::drawCrosshair(screenWidth, screenHeight);
             UI::drawGunHUD(player.ammo, player.maxAmmo, screenWidth, screenHeight);
-            UI::drawHealthBar(playerHealth, maxHealth, screenWidth, screenHeight);
+            UI::drawHealthBar(player.health, player.maxHealth, screenWidth, screenHeight);
             UI::drawWalletInfo(walletConnected, walletAddress, solBalance);
             UI::drawControls();
             

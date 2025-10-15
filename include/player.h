@@ -23,6 +23,12 @@ public:
     float standingHeight;
     float currentHeight; // Smoothly interpolated height
     
+    // Health system
+    float health;
+    float maxHealth;
+    float lastDamageTime;
+    float damageFlashTimer;
+    
     // Gun state
     bool isShooting;
     float shootCooldown;
@@ -51,6 +57,8 @@ public:
     void reload();
     void playFootstep();
     void updateFootsteps(float deltaTime);
+    void takeDamage(float damage);
+    void regenerateHealth(float deltaTime);
     Vector3 getForward();
     Vector3 getRight();
     float getForwardSpeed(); // Get speed in forward direction only

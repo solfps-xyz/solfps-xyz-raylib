@@ -51,26 +51,89 @@ void UI::drawGunHUD(int ammo, int maxAmmo, int screenWidth, int screenHeight) {
 }
 
 void UI::drawHealthBar(float health, float maxHealth, int screenWidth, int screenHeight) {
-    int barWidth = 200;
-    int barHeight = 20;
-    int barX = 20;
-    int barY = screenHeight - 40;
+    int barWidth = 300;
+    int barHeight = 30;
+    int barX = 30;
+    int barY = screenHeight - 60;
     
     float healthPercent = health / maxHealth;
     
-    // Background
-    DrawRectangle(barX, barY, barWidth, barHeight, (Color){ 40, 40, 40, 200 });
+    // Outer frame with cyberpunk glow
+    DrawRectangle(barX - 5, barY - 5, barWidth + 10, barHeight + 10, 
+                  (Color){ 10, 10, 15, 200 });
+    DrawRectangleLines(barX - 5, barY - 5, barWidth + 10, barHeight + 10, 
+                      (Color){ 0, 255, 255, 150 });
+    DrawRectangleLines(barX - 4, barY - 4, barWidth + 8, barHeight + 8, 
+                      (Color){ 0, 255, 255, 80 });
     
-    // Health bar
-    Color healthColor = healthPercent > 0.5f ? (Color){ 0, 255, 100, 255 } : 
-                       healthPercent > 0.25f ? (Color){ 255, 200, 0, 255 } : RED;
-    DrawRectangle(barX, barY, (int)(barWidth * healthPercent), barHeight, healthColor);
+    // Background with grid pattern
+    DrawRectangle(barX, barY, barWidth, barHeight, (Color){ 20, 20, 30, 230 });
     
-    // Border
+    // Draw grid lines for cyberpunk aesthetic
+    for (int i = 0; i <= 10; i++) {
+        int x = barX + (barWidth * i / 10);
+        DrawLine(x, barY, x, barY + barHeight, (Color){ 40, 40, 50, 100 });
+    }
+    
+    // Determine health color with smooth transitions
+    Color healthColor;
+    Color glowColor;
+    if (healthPercent > 0.6f) {
+        healthColor = (Color){ 0, 255, 150, 255 };
+        glowColor = (Color){ 0, 255, 150, 100 };
+    } else if (healthPercent > 0.3f) {
+        healthColor = (Color){ 255, 200, 0, 255 };
+        glowColor = (Color){ 255, 200, 0, 100 };
+    } else {
+        healthColor = (Color){ 255, 50, 50, 255 };
+        glowColor = (Color){ 255, 50, 50, 100 };
+    }
+    
+    // Calculate filled width
+    int filledWidth = (int)(barWidth * healthPercent);
+    
+    // Draw health bar with gradient effect
+    if (filledWidth > 0) {
+        // Base health bar
+        DrawRectangle(barX, barY, filledWidth, barHeight, healthColor);
+        
+        // Glow effect on top edge
+        DrawRectangle(barX, barY, filledWidth, 3, Fade(WHITE, 0.6f));
+        
+        // Side glow
+        DrawRectangle(barX - 2, barY, 2, barHeight, Fade(glowColor, 0.5f));
+        if (filledWidth < barWidth) {
+            DrawRectangle(barX + filledWidth, barY, 2, barHeight, Fade(glowColor, 0.8f));
+        }
+    }
+    
+    // Segmented overlay (creates sectioned appearance)
+    for (int i = 1; i < 10; i++) {
+        int segX = barX + (barWidth * i / 10);
+        DrawRectangle(segX - 1, barY, 2, barHeight, (Color){ 10, 10, 15, 180 });
+    }
+    
+    // Border with double-line effect
     DrawRectangleLines(barX, barY, barWidth, barHeight, (Color){ 0, 255, 255, 255 });
+    DrawRectangleLines(barX + 1, barY + 1, barWidth - 2, barHeight - 2, 
+                      (Color){ 0, 200, 255, 150 });
     
-    // Text
-    DrawText(TextFormat("HP: %.0f", health), barX + 5, barY + 2, 16, WHITE);
+    // Health text with shadow
+    DrawText(TextFormat("%.0f", health), barX + 8, barY + 6, 20, (Color){ 0, 0, 0, 200 });
+    DrawText(TextFormat("%.0f", health), barX + 7, barY + 5, 20, WHITE);
+    
+    // Max health indicator
+    DrawText(TextFormat("/ %.0f", maxHealth), barX + 60, barY + 9, 14, (Color){ 150, 150, 170, 255 });
+    
+    // "HEALTH" label with glow
+    DrawText("HEALTH", barX + barWidth - 65, barY + 9, 12, (Color){ 0, 255, 255, 200 });
+    
+    // Low health warning pulse
+    if (healthPercent < 0.25f) {
+        float pulse = (sinf(GetTime() * 8.0f) + 1.0f) * 0.5f; // Pulsing effect
+        DrawRectangle(barX - 5, barY - 5, barWidth + 10, barHeight + 10, 
+                     Fade((Color){ 255, 0, 0, 255 }, pulse * 0.3f));
+    }
 }
 
 void UI::drawWalletInfo(bool connected, const std::string& address, double balance) {

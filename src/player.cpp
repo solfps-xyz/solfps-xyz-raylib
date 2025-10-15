@@ -29,6 +29,12 @@ Player::Player() {
     isSprinting = false;
     isCrouching = false;
     
+    // Health system
+    health = 100.0f;
+    maxHealth = 100.0f;
+    lastDamageTime = 0.0f;
+    damageFlashTimer = 0.0f;
+    
     // Gun state
     isShooting = false;
     shootCooldown = 0.0f;
@@ -289,6 +295,28 @@ void Player::updateFootsteps(float deltaTime) {
     }
     
     lastHorizontalSpeed = horizontalSpeed;
+}
+
+void Player::takeDamage(float damage) {
+    health -= damage;
+    if (health < 0.0f) health = 0.0f;
+    
+    lastDamageTime = GetTime();
+    damageFlashTimer = 0.3f; // Flash duration
+}
+
+void Player::regenerateHealth(float deltaTime) {
+    // Update damage flash timer
+    if (damageFlashTimer > 0.0f) {
+        damageFlashTimer -= deltaTime;
+    }
+    
+    // Regenerate health after 3 seconds of not taking damage
+    float timeSinceLastDamage = GetTime() - lastDamageTime;
+    if (timeSinceLastDamage > 3.0f && health < maxHealth) {
+        health += 10.0f * deltaTime; // Regenerate 10 HP per second
+        if (health > maxHealth) health = maxHealth;
+    }
 }
 
 float Player::getForwardSpeed() {
