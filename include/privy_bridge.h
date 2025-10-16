@@ -162,6 +162,61 @@ public:
         });
         return "";
     }
+    
+    // Device detection functions
+    static bool isMobileDevice() {
+        return EM_ASM_INT({
+            if (window.PrivyBridge && window.PrivyBridge.isMobile) {
+                return window.PrivyBridge.isMobile() ? 1 : 0;
+            }
+            return 0;
+        });
+    }
+    
+    static bool isTabletDevice() {
+        return EM_ASM_INT({
+            if (window.PrivyBridge && window.PrivyBridge.isTablet) {
+                return window.PrivyBridge.isTablet() ? 1 : 0;
+            }
+            return 0;
+        });
+    }
+    
+    static bool isDesktopDevice() {
+        return EM_ASM_INT({
+            if (window.PrivyBridge && window.PrivyBridge.isDesktop) {
+                return window.PrivyBridge.isDesktop() ? 1 : 0;
+            }
+            return 1; // Default to desktop
+        });
+    }
+    
+    static int getScreenWidth() {
+        return EM_ASM_INT({
+            if (window.PrivyBridge && window.PrivyBridge.getScreenWidth) {
+                return window.PrivyBridge.getScreenWidth();
+            }
+            return window.innerWidth || 800;
+        });
+    }
+    
+    static int getScreenHeight() {
+        return EM_ASM_INT({
+            if (window.PrivyBridge && window.PrivyBridge.getScreenHeight) {
+                return window.PrivyBridge.getScreenHeight();
+            }
+            return window.innerHeight || 600;
+        });
+    }
+    
+    static bool hasTouchSupport() {
+        return EM_ASM_INT({
+            if (window.PrivyBridge && window.PrivyBridge.hasTouch) {
+                return window.PrivyBridge.hasTouch() ? 1 : 0;
+            }
+            return 0;
+        });
+    }
 };
 
 #else
@@ -178,6 +233,12 @@ public:
     static void requestSendTransaction(const char* recipientAddress, int amountLamports) {}
     static std::string getUserId() { return ""; }
     static std::string getUserEmail() { return ""; }
+    static bool isMobileDevice() { return false; }
+    static bool isTabletDevice() { return false; }
+    static bool isDesktopDevice() { return true; }
+    static int getScreenWidth() { return 800; }
+    static int getScreenHeight() { return 600; }
+    static bool hasTouchSupport() { return false; }
 };
 #endif
 

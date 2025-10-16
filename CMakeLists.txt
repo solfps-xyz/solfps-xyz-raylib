@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
 project(game)
 
-set(CMAKE_EXECUTABLE_SUFFIX ".js")
+set(CMAKE_EXECUTABLE_SUFFIX ".html")
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 17)
 set(SUPPORT_FILEFORMAT_SVG)
@@ -16,6 +16,7 @@ set(SOURCES
     src/map.cpp
     src/gun.cpp
     src/ui.cpp
+    src/mobile_controls.cpp
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})

@@ -200,6 +200,101 @@ void Player::handleInput(float deltaTime) {
     }
 }
 
+void Player::handleMobileInput(float deltaTime, Vector2 moveVector, bool sprint, bool jump, bool crouch, bool shoot, bool reload) {
+    Vector3 forward = getForward();
+    Vector3 flatForward = { forward.x, 0.0f, forward.z };
+    flatForward = Vector3Normalize(flatForward);
+    Vector3 right = getRight();
+    
+    // Crouch toggle (detect state change)
+    static bool lastCrouchState = false;
+    if (crouch && !lastCrouchState) {
+        isCrouching = !isCrouching;
+    }
+    lastCrouchState = crouch;
+    
+    // Sprint (only if moving forward)
+    isSprinting = sprint && moveVector.y < -0.3f && !isCrouching; // Joystick Y is inverted
+    
+    // Determine current speed
+    float currentSpeed;
+    if (isCrouching) {
+        currentSpeed = crouchSpeed;
+    } else if (isSprinting) {
+        currentSpeed = sprintSpeed;
+    } else {
+        currentSpeed = moveSpeed;
+    }
+    
+    // Apply joystick movement
+    Vector3 moveDir = { 0.0f, 0.0f, 0.0f };
+    float forwardInput = 0.0f;
+    
+    if (fabs(moveVector.x) > 0.1f || fabs(moveVector.y) > 0.1f) {
+        // X axis - strafe left/right
+        moveDir = Vector3Add(moveDir, Vector3Scale(right, moveVector.x));
+        
+        // Y axis - forward/backward (inverted because touch Y is top-to-bottom)
+        moveDir = Vector3Add(moveDir, Vector3Scale(flatForward, -moveVector.y));
+        forwardInput = -moveVector.y;
+        
+        // Normalize and apply speed
+        if (Vector3Length(moveDir) > 0.0f) {
+            moveDir = Vector3Normalize(moveDir);
+            velocity.x = moveDir.x * currentSpeed;
+            velocity.z = moveDir.z * currentSpeed;
+            
+            // Track forward velocity for gun bob
+            if (forwardInput > 0.3f) {
+                forwardVelocity = currentSpeed;
+            } else {
+                forwardVelocity = 0.0f;
+            }
+        }
+    } else {
+        velocity.x = 0.0f;
+        velocity.z = 0.0f;
+        forwardVelocity = 0.0f;
+    }
+    
+    // Jump
+    static bool lastJumpState = false;
+    if (jump && !lastJumpState && isGrounded) {
+        velocity.y = 8.0f;
+        isGrounded = false;
+    }
+    lastJumpState = jump;
+    
+    // Shooting
+    if (shoot && shootCooldown <= 0.0f && ammo > 0) {
+        this->shoot();
+    }
+    
+    // Reload
+    static bool lastReloadState = false;
+    if (reload && !lastReloadState && ammo < maxAmmo) {
+        this->reload();
+    }
+    lastReloadState = reload;
+    
+    // Update camera target
+    camera.target = Vector3Add(camera.position, forward);
+}
+
+void Player::handleMobileLook(Vector2 lookDelta) {
+    // Apply look delta to yaw and pitch
+    yaw += lookDelta.x * mouseSensitivity;
+    pitch -= lookDelta.y * mouseSensitivity; // Inverted Y
+    
+    // Clamp pitch
+    if (pitch > 89.0f) pitch = 89.0f;
+    if (pitch < -89.0f) pitch = -89.0f;
+    
+    // Update camera target
+    Vector3 forward = getForward();
+    camera.target = Vector3Add(camera.position, forward);
+}
+
 void Player::applyGravity(float deltaTime) {
     // Smoothly interpolate height when crouching/standing
     float targetHeight = isCrouching ? crouchHeight : standingHeight;

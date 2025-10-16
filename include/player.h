@@ -51,7 +51,9 @@ public:
     ~Player();
     void update(float deltaTime);
     void handleInput(float deltaTime);
+    void handleMobileInput(float deltaTime, Vector2 moveVector, bool sprint, bool jump, bool crouch, bool shoot, bool reload);
     void handleMouseLook();
+    void handleMobileLook(Vector2 lookDelta);
     void applyGravity(float deltaTime);
     void shoot();
     void reload();

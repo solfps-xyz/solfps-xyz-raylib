@@ -14,6 +14,7 @@
 #include "map.h"
 #include "gun.h"
 #include "ui.h"
+#include "mobile_controls.h"
 
 // Particle structures for effects
 struct BulletTracer {
@@ -44,6 +45,31 @@ int main() {
     // Initialize Privy Bridge
     PrivyBridge::init();
     
+    // Detect device type
+    bool isMobile = false;
+    #if defined(PLATFORM_WEB)
+        // Try to detect mobile device
+        isMobile = PrivyBridge::isMobileDevice() || PrivyBridge::isTabletDevice();
+        
+        // Also check for touch support as fallback
+        if (!isMobile && PrivyBridge::hasTouchSupport()) {
+            isMobile = true;
+        }
+        
+        // Debug: Log device detection
+        EM_ASM({
+            console.log('Device Detection:', {
+                isMobile: Module.isMobile || false,
+                hasTouch: (window.PrivyBridge && window.PrivyBridge.hasTouch) ? window.PrivyBridge.hasTouch() : false,
+                screenWidth: window.innerWidth,
+                screenHeight: window.innerHeight
+            });
+        });
+    #endif
+    
+    // Initialize mobile controls if needed
+    MobileControls mobileControls;
+    
     // Wallet state
     bool walletConnected = false;
     std::string walletAddress = "";
@@ -65,7 +91,12 @@ int main() {
     std::vector<ImpactParticle> impactParticles;
     bool lastShooting = false;
     
-    DisableCursor();
+    // Enable cursor for mobile (touch controls), disable for desktop
+    if (isMobile) {
+        EnableCursor();
+    } else {
+        DisableCursor();
+    }
     SetTargetFPS(60);
 
     // Main game loop
@@ -75,8 +106,49 @@ int main() {
         // Update
         //----------------------------------------------------------------------------------
         
-        // Update player (this will set isShooting if mouse is clicked)
-        player.update(deltaTime);
+        // Toggle mobile controls with M key (for testing)
+        if (IsKeyPressed(KEY_M)) {
+            isMobile = !isMobile;
+            if (isMobile) {
+                EnableCursor();
+            } else {
+                DisableCursor();
+            }
+        }
+        
+        // Update mobile controls if on mobile device
+        if (isMobile) {
+            mobileControls.update(screenWidth, screenHeight);
+            
+            // Handle mobile input
+            Vector2 moveVector = mobileControls.getMovementVector();
+            Vector2 lookDelta = mobileControls.getLookDelta();
+            
+            player.handleMobileInput(deltaTime, moveVector, 
+                                    mobileControls.sprintPressed,
+                                    mobileControls.jumpPressed,
+                                    mobileControls.crouchPressed,
+                                    mobileControls.shootPressed,
+                                    mobileControls.reloadPressed);
+            
+            player.handleMobileLook(lookDelta);
+            
+            // Apply movement and gravity
+            player.camera.position.x += player.velocity.x * deltaTime;
+            player.camera.position.z += player.velocity.z * deltaTime;
+            player.applyGravity(deltaTime);
+            
+            // Update footsteps
+            player.updateFootsteps(deltaTime);
+            
+            // Update shoot cooldown
+            if (player.shootCooldown > 0.0f) {
+                player.shootCooldown -= deltaTime;
+            }
+        } else {
+            // Desktop controls (original)
+            player.update(deltaTime);
+        }
         
         // Regenerate health over time
         player.regenerateHealth(deltaTime);
@@ -372,7 +444,17 @@ int main() {
             UI::drawGunHUD(player.ammo, player.maxAmmo, screenWidth, screenHeight);
             UI::drawHealthBar(player.health, player.maxHealth, screenWidth, screenHeight);
             UI::drawWalletInfo(walletConnected, walletAddress, solBalance);
-            UI::drawControls();
+            
+            // Draw mobile controls on top of HUD if on mobile
+            if (isMobile) {
+                mobileControls.draw(screenWidth, screenHeight);
+                // Debug indicator
+                DrawText("MOBILE MODE", 10, screenHeight - 100, 20, (Color){ 0, 255, 0, 255 });
+            } else {
+                // Show desktop controls guide
+                UI::drawControls();
+                DrawText("DESKTOP MODE - Press M for mobile", 10, screenHeight - 100, 16, (Color){ 255, 255, 0, 255 });
+            }
             
             DrawFPS(screenWidth - 100, 10);
             
