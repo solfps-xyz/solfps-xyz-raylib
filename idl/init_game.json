@@ -1,0 +1,245 @@
+{
+  "address": "5ZhDRGff5T4dyvdiDF6Mg729VLQ2EVU4ecqY3ni3PQGo",
+  "metadata": {
+    "name": "init_game",
+    "version": "0.1.10",
+    "spec": "0.1.0",
+    "description": "Created with Bolt"
+  },
+  "instructions": [
+    {
+      "name": "execute_2",
+      "discriminator": [
+        105,
+        108,
+        50,
+        190,
+        253,
+        180,
+        77,
+        227
+      ],
+      "accounts": [
+        {
+          "name": "game"
+        },
+        {
+          "name": "player"
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "_args",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Game",
+      "discriminator": [
+        27,
+        90,
+        166,
+        125,
+        74,
+        100,
+        121,
+        18
+      ]
+    },
+    {
+      "name": "Player",
+      "discriminator": [
+        205,
+        222,
+        112,
+        7,
+        165,
+        155,
+        206,
+        218
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "PlayerNotRegistered",
+      "msg": "Player must be registered to create a game"
+    },
+    {
+      "code": 6001,
+      "name": "PlayerAlreadyInGame",
+      "msg": "Player is already in a game"
+    }
+  ],
+  "types": [
+    {
+      "name": "BoltMetadata",
+      "docs": [
+        "Metadata for the component."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Game",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "team_a_score",
+            "type": "u32"
+          },
+          {
+            "name": "team_b_score",
+            "type": "u32"
+          },
+          {
+            "name": "match_duration",
+            "type": "u32"
+          },
+          {
+            "name": "match_start_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "match_end_timestamp",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "game_state",
+            "type": "u8"
+          },
+          {
+            "name": "max_players_per_team",
+            "type": "u8"
+          },
+          {
+            "name": "current_players_team_a",
+            "type": "u8"
+          },
+          {
+            "name": "current_players_team_b",
+            "type": "u8"
+          },
+          {
+            "name": "winning_team",
+            "type": {
+              "option": "u8"
+            }
+          },
+          {
+            "name": "match_type",
+            "type": "u8"
+          },
+          {
+            "name": "map_name",
+            "type": "string"
+          },
+          {
+            "name": "lobby_name",
+            "type": "string"
+          },
+          {
+            "name": "created_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_private",
+            "type": "bool"
+          },
+          {
+            "name": "ready_players",
+            "type": "u8"
+          },
+          {
+            "name": "map_selection",
+            "type": "u8"
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Player",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "has_logged_in",
+            "type": "bool"
+          },
+          {
+            "name": "team",
+            "type": "u8"
+          },
+          {
+            "name": "current_game",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "is_alive",
+            "type": "bool"
+          },
+          {
+            "name": "last_login_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "total_matches_played",
+            "type": "u32"
+          },
+          {
+            "name": "level",
+            "type": "u32"
+          },
+          {
+            "name": "is_ready",
+            "type": "bool"
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

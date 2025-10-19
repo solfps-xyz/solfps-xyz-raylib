@@ -1,0 +1,310 @@
+{
+  "address": "FVZKXQwmxnnKBhiyvBU9psjg3RdmGz87hotvGV18V2un",
+  "metadata": {
+    "name": "respawn",
+    "version": "0.1.10",
+    "spec": "0.1.0",
+    "description": "Created with Bolt"
+  },
+  "instructions": [
+    {
+      "name": "execute_3",
+      "discriminator": [
+        110,
+        111,
+        120,
+        86,
+        172,
+        152,
+        117,
+        173
+      ],
+      "accounts": [
+        {
+          "name": "player"
+        },
+        {
+          "name": "health"
+        },
+        {
+          "name": "position"
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "_args",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Health",
+      "discriminator": [
+        71,
+        170,
+        202,
+        24,
+        47,
+        43,
+        197,
+        8
+      ]
+    },
+    {
+      "name": "Player",
+      "discriminator": [
+        205,
+        222,
+        112,
+        7,
+        165,
+        155,
+        206,
+        218
+      ]
+    },
+    {
+      "name": "Position",
+      "discriminator": [
+        170,
+        188,
+        143,
+        228,
+        122,
+        64,
+        247,
+        208
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "PlayerNotLoggedIn",
+      "msg": "Player is not logged in"
+    },
+    {
+      "code": 6001,
+      "name": "PlayerNotInGame",
+      "msg": "Player is not in a game"
+    },
+    {
+      "code": 6002,
+      "name": "PlayerAlreadyAlive",
+      "msg": "Player is already alive"
+    },
+    {
+      "code": 6003,
+      "name": "RespawnCooldownActive",
+      "msg": "Must wait 5 seconds before respawning"
+    },
+    {
+      "code": 6004,
+      "name": "NoDeathRecord",
+      "msg": "No death record found"
+    }
+  ],
+  "types": [
+    {
+      "name": "BoltMetadata",
+      "docs": [
+        "Metadata for the component."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Health",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "max_hp",
+            "type": "u32"
+          },
+          {
+            "name": "current_hp",
+            "type": "u32"
+          },
+          {
+            "name": "armor",
+            "type": "u32"
+          },
+          {
+            "name": "max_armor",
+            "type": "u32"
+          },
+          {
+            "name": "is_alive",
+            "type": "bool"
+          },
+          {
+            "name": "last_damage_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "last_damage_amount",
+            "type": "u32"
+          },
+          {
+            "name": "last_damage_source",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "respawn_timestamp",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "invulnerable_until",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Player",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "has_logged_in",
+            "type": "bool"
+          },
+          {
+            "name": "team",
+            "type": "u8"
+          },
+          {
+            "name": "current_game",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "is_alive",
+            "type": "bool"
+          },
+          {
+            "name": "last_login_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "total_matches_played",
+            "type": "u32"
+          },
+          {
+            "name": "level",
+            "type": "u32"
+          },
+          {
+            "name": "is_ready",
+            "type": "bool"
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Position",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "x",
+            "type": "f64"
+          },
+          {
+            "name": "y",
+            "type": "f64"
+          },
+          {
+            "name": "z",
+            "type": "f64"
+          },
+          {
+            "name": "rotation_x",
+            "type": "f32"
+          },
+          {
+            "name": "rotation_y",
+            "type": "f32"
+          },
+          {
+            "name": "velocity_x",
+            "type": "f32"
+          },
+          {
+            "name": "velocity_y",
+            "type": "f32"
+          },
+          {
+            "name": "velocity_z",
+            "type": "f32"
+          },
+          {
+            "name": "is_jumping",
+            "type": "bool"
+          },
+          {
+            "name": "is_moving",
+            "type": "bool"
+          },
+          {
+            "name": "spawn_point_id",
+            "type": "u8"
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

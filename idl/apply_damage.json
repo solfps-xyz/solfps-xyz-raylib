@@ -1,0 +1,521 @@
+{
+  "address": "GYpCrumupdHMPpke9fZf5Y66WfX2sYKs1xx22yRhYpoq",
+  "metadata": {
+    "name": "apply_damage",
+    "version": "0.1.10",
+    "spec": "0.1.0",
+    "description": "Created with Bolt"
+  },
+  "instructions": [
+    {
+      "name": "execute_7",
+      "discriminator": [
+        35,
+        236,
+        132,
+        224,
+        164,
+        223,
+        158,
+        124
+      ],
+      "accounts": [
+        {
+          "name": "attacker"
+        },
+        {
+          "name": "attacker_weapon"
+        },
+        {
+          "name": "attacker_stats"
+        },
+        {
+          "name": "victim"
+        },
+        {
+          "name": "victim_health"
+        },
+        {
+          "name": "victim_stats"
+        },
+        {
+          "name": "game"
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Game",
+      "discriminator": [
+        27,
+        90,
+        166,
+        125,
+        74,
+        100,
+        121,
+        18
+      ]
+    },
+    {
+      "name": "Health",
+      "discriminator": [
+        71,
+        170,
+        202,
+        24,
+        47,
+        43,
+        197,
+        8
+      ]
+    },
+    {
+      "name": "Player",
+      "discriminator": [
+        205,
+        222,
+        112,
+        7,
+        165,
+        155,
+        206,
+        218
+      ]
+    },
+    {
+      "name": "PlayerStats",
+      "discriminator": [
+        169,
+        146,
+        242,
+        176,
+        102,
+        118,
+        231,
+        172
+      ]
+    },
+    {
+      "name": "Weapon",
+      "discriminator": [
+        242,
+        172,
+        185,
+        6,
+        40,
+        21,
+        129,
+        89
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidArgs",
+      "msg": "Invalid arguments provided"
+    },
+    {
+      "code": 6001,
+      "name": "VictimAlreadyDead",
+      "msg": "Victim is already dead"
+    },
+    {
+      "code": 6002,
+      "name": "AttackerNotInGame",
+      "msg": "Attacker is not in a game"
+    },
+    {
+      "code": 6003,
+      "name": "VictimNotInGame",
+      "msg": "Victim is not in a game"
+    },
+    {
+      "code": 6004,
+      "name": "PlayersNotInSameGame",
+      "msg": "Players are not in the same game"
+    },
+    {
+      "code": 6005,
+      "name": "FriendlyFire",
+      "msg": "Cannot damage teammates"
+    },
+    {
+      "code": 6006,
+      "name": "VictimInvulnerable",
+      "msg": "Victim is invulnerable"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidWeaponType",
+      "msg": "Invalid weapon type"
+    }
+  ],
+  "types": [
+    {
+      "name": "BoltMetadata",
+      "docs": [
+        "Metadata for the component."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Game",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "team_a_score",
+            "type": "u32"
+          },
+          {
+            "name": "team_b_score",
+            "type": "u32"
+          },
+          {
+            "name": "match_duration",
+            "type": "u32"
+          },
+          {
+            "name": "match_start_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "match_end_timestamp",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "game_state",
+            "type": "u8"
+          },
+          {
+            "name": "max_players_per_team",
+            "type": "u8"
+          },
+          {
+            "name": "current_players_team_a",
+            "type": "u8"
+          },
+          {
+            "name": "current_players_team_b",
+            "type": "u8"
+          },
+          {
+            "name": "winning_team",
+            "type": {
+              "option": "u8"
+            }
+          },
+          {
+            "name": "match_type",
+            "type": "u8"
+          },
+          {
+            "name": "map_name",
+            "type": "string"
+          },
+          {
+            "name": "lobby_name",
+            "type": "string"
+          },
+          {
+            "name": "created_by",
+            "type": "pubkey"
+          },
+          {
+            "name": "is_private",
+            "type": "bool"
+          },
+          {
+            "name": "ready_players",
+            "type": "u8"
+          },
+          {
+            "name": "map_selection",
+            "type": "u8"
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Health",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "max_hp",
+            "type": "u32"
+          },
+          {
+            "name": "current_hp",
+            "type": "u32"
+          },
+          {
+            "name": "armor",
+            "type": "u32"
+          },
+          {
+            "name": "max_armor",
+            "type": "u32"
+          },
+          {
+            "name": "is_alive",
+            "type": "bool"
+          },
+          {
+            "name": "last_damage_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "last_damage_amount",
+            "type": "u32"
+          },
+          {
+            "name": "last_damage_source",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "respawn_timestamp",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "invulnerable_until",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Player",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "has_logged_in",
+            "type": "bool"
+          },
+          {
+            "name": "team",
+            "type": "u8"
+          },
+          {
+            "name": "current_game",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "is_alive",
+            "type": "bool"
+          },
+          {
+            "name": "last_login_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "total_matches_played",
+            "type": "u32"
+          },
+          {
+            "name": "level",
+            "type": "u32"
+          },
+          {
+            "name": "is_ready",
+            "type": "bool"
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "kills",
+            "type": "u32"
+          },
+          {
+            "name": "deaths",
+            "type": "u32"
+          },
+          {
+            "name": "assists",
+            "type": "u32"
+          },
+          {
+            "name": "headshots",
+            "type": "u32"
+          },
+          {
+            "name": "damage_taken",
+            "type": "u32"
+          },
+          {
+            "name": "damage_dealt",
+            "type": "u32"
+          },
+          {
+            "name": "round_wins",
+            "type": "u32"
+          },
+          {
+            "name": "kda_ratio",
+            "type": "f32"
+          },
+          {
+            "name": "kill_streak",
+            "type": "u32"
+          },
+          {
+            "name": "highest_kill_streak",
+            "type": "u32"
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Weapon",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "primary_weapon",
+            "type": "pubkey"
+          },
+          {
+            "name": "secondary_weapon",
+            "type": "pubkey"
+          },
+          {
+            "name": "current_weapon",
+            "type": "u8"
+          },
+          {
+            "name": "primary_ammo",
+            "type": "u32"
+          },
+          {
+            "name": "primary_ammo_reserve",
+            "type": "u32"
+          },
+          {
+            "name": "secondary_ammo",
+            "type": "u32"
+          },
+          {
+            "name": "secondary_ammo_reserve",
+            "type": "u32"
+          },
+          {
+            "name": "primary_damage",
+            "type": "u32"
+          },
+          {
+            "name": "secondary_damage",
+            "type": "u32"
+          },
+          {
+            "name": "can_switch_weapon",
+            "type": "bool"
+          },
+          {
+            "name": "reload_time",
+            "type": "u32"
+          },
+          {
+            "name": "last_shot_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "is_reloading",
+            "type": "bool"
+          },
+          {
+            "name": "reload_start_timestamp",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

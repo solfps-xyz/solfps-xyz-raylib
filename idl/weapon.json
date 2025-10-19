@@ -1,0 +1,199 @@
+{
+  "address": "HmbfcCA9Vu49sn2pFYPy3S6LsmEsLqABBTYo8DKXJ5hq",
+  "metadata": {
+    "name": "weapon",
+    "version": "0.1.10",
+    "spec": "0.1.0",
+    "description": "Created with Bolt"
+  },
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "data",
+          "writable": true
+        },
+        {
+          "name": "entity"
+        },
+        {
+          "name": "authority"
+        },
+        {
+          "name": "instruction_sysvar_account",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update",
+      "discriminator": [
+        219,
+        200,
+        88,
+        176,
+        158,
+        63,
+        253,
+        127
+      ],
+      "accounts": [
+        {
+          "name": "bolt_component",
+          "writable": true
+        },
+        {
+          "name": "authority"
+        },
+        {
+          "name": "instruction_sysvar_account",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "data",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Entity",
+      "discriminator": [
+        46,
+        157,
+        161,
+        161,
+        254,
+        46,
+        79,
+        24
+      ]
+    },
+    {
+      "name": "Weapon",
+      "discriminator": [
+        242,
+        172,
+        185,
+        6,
+        40,
+        21,
+        129,
+        89
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "BoltMetadata",
+      "docs": [
+        "Metadata for the component."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Entity",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Weapon",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "primary_weapon",
+            "type": "pubkey"
+          },
+          {
+            "name": "secondary_weapon",
+            "type": "pubkey"
+          },
+          {
+            "name": "current_weapon",
+            "type": "u8"
+          },
+          {
+            "name": "primary_ammo",
+            "type": "u32"
+          },
+          {
+            "name": "primary_ammo_reserve",
+            "type": "u32"
+          },
+          {
+            "name": "secondary_ammo",
+            "type": "u32"
+          },
+          {
+            "name": "secondary_ammo_reserve",
+            "type": "u32"
+          },
+          {
+            "name": "primary_damage",
+            "type": "u32"
+          },
+          {
+            "name": "secondary_damage",
+            "type": "u32"
+          },
+          {
+            "name": "can_switch_weapon",
+            "type": "bool"
+          },
+          {
+            "name": "reload_time",
+            "type": "u32"
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

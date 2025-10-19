@@ -1,0 +1,26 @@
+{
+  "address": "Bndwbg1GQ8Cd8c7pm6ihnudx88aUoP5K6p481zh58vM6",
+  "metadata": {
+    "name": "solfps_xyz_contracts",
+    "version": "0.1.10",
+    "spec": "0.1.0",
+    "description": "Created with Bolt"
+  },
+  "instructions": [
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [],
+      "args": []
+    }
+  ]
+}

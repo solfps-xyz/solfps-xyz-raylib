@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdio>
 #include <iostream>
+#include "movement.h"
 
 Player::Player() {
     camera.position = (Vector3){ 0.0f, 2.0f, 5.0f };
@@ -164,6 +165,7 @@ void Player::handleInput(float deltaTime) {
     if (Vector3Length(moveDir) > 0) {
         moveDir = Vector3Normalize(moveDir);
         moveDir = Vector3Scale(moveDir, currentSpeed * deltaTime);
+        // Local prediction: keep client responsive
         camera.position = Vector3Add(camera.position, moveDir);
         
         // Update horizontal velocity for footstep system
@@ -176,6 +178,16 @@ void Player::handleInput(float deltaTime) {
         } else {
             forwardVelocity = 0.0f; // Strafing or moving backward
         }
+        // Submit onchain movement: encode flags from inputs
+        uint8_t flags = 0;
+        if (IsKeyDown(KEY_W)) flags |= 1 << 0;
+        if (IsKeyDown(KEY_S)) flags |= 1 << 1;
+        if (IsKeyDown(KEY_A)) flags |= 1 << 2;
+        if (IsKeyDown(KEY_D)) flags |= 1 << 3;
+        if (IsKeyDown(KEY_SPACE)) flags |= 1 << 4; // jump intent
+        if (isCrouching) flags |= 1 << 5;
+
+        MovementBridge::submit(flags, yaw, isSprinting ? 1 : 0);
     } else {
         // No horizontal movement
         velocity.x = 0.0f;

@@ -1,0 +1,332 @@
+{
+  "address": "FDCpMdKzRvkgBnn6BERa9DtqUJY6Fxj3xjsRxFPkhJVh",
+  "metadata": {
+    "name": "shoot",
+    "version": "0.1.10",
+    "spec": "0.1.0",
+    "description": "Created with Bolt"
+  },
+  "instructions": [
+    {
+      "name": "execute_3",
+      "discriminator": [
+        110,
+        111,
+        120,
+        86,
+        172,
+        152,
+        117,
+        173
+      ],
+      "accounts": [
+        {
+          "name": "player"
+        },
+        {
+          "name": "weapon"
+        },
+        {
+          "name": "position"
+        },
+        {
+          "name": "authority",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Player",
+      "discriminator": [
+        205,
+        222,
+        112,
+        7,
+        165,
+        155,
+        206,
+        218
+      ]
+    },
+    {
+      "name": "Position",
+      "discriminator": [
+        170,
+        188,
+        143,
+        228,
+        122,
+        64,
+        247,
+        208
+      ]
+    },
+    {
+      "name": "Weapon",
+      "discriminator": [
+        242,
+        172,
+        185,
+        6,
+        40,
+        21,
+        129,
+        89
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidArgs",
+      "msg": "Invalid arguments"
+    },
+    {
+      "code": 6001,
+      "name": "PlayerNotAlive",
+      "msg": "Player is not alive"
+    },
+    {
+      "code": 6002,
+      "name": "PlayerNotInGame",
+      "msg": "Player is not in a game"
+    },
+    {
+      "code": 6003,
+      "name": "WeaponReloading",
+      "msg": "Weapon is currently reloading"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidWeaponSlot",
+      "msg": "Invalid weapon slot"
+    },
+    {
+      "code": 6005,
+      "name": "NoAmmo",
+      "msg": "No ammo remaining"
+    },
+    {
+      "code": 6006,
+      "name": "FireRateLimited",
+      "msg": "Fire rate limited - too fast"
+    }
+  ],
+  "types": [
+    {
+      "name": "BoltMetadata",
+      "docs": [
+        "Metadata for the component."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Player",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "has_logged_in",
+            "type": "bool"
+          },
+          {
+            "name": "team",
+            "type": "u8"
+          },
+          {
+            "name": "current_game",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "is_alive",
+            "type": "bool"
+          },
+          {
+            "name": "last_login_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "total_matches_played",
+            "type": "u32"
+          },
+          {
+            "name": "level",
+            "type": "u32"
+          },
+          {
+            "name": "is_ready",
+            "type": "bool"
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Position",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "x",
+            "type": "f64"
+          },
+          {
+            "name": "y",
+            "type": "f64"
+          },
+          {
+            "name": "z",
+            "type": "f64"
+          },
+          {
+            "name": "rotation_x",
+            "type": "f32"
+          },
+          {
+            "name": "rotation_y",
+            "type": "f32"
+          },
+          {
+            "name": "velocity_x",
+            "type": "f32"
+          },
+          {
+            "name": "velocity_y",
+            "type": "f32"
+          },
+          {
+            "name": "velocity_z",
+            "type": "f32"
+          },
+          {
+            "name": "is_jumping",
+            "type": "bool"
+          },
+          {
+            "name": "is_moving",
+            "type": "bool"
+          },
+          {
+            "name": "spawn_point_id",
+            "type": "u8"
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "Weapon",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "primary_weapon",
+            "type": "pubkey"
+          },
+          {
+            "name": "secondary_weapon",
+            "type": "pubkey"
+          },
+          {
+            "name": "current_weapon",
+            "type": "u8"
+          },
+          {
+            "name": "primary_ammo",
+            "type": "u32"
+          },
+          {
+            "name": "primary_ammo_reserve",
+            "type": "u32"
+          },
+          {
+            "name": "secondary_ammo",
+            "type": "u32"
+          },
+          {
+            "name": "secondary_ammo_reserve",
+            "type": "u32"
+          },
+          {
+            "name": "primary_damage",
+            "type": "u32"
+          },
+          {
+            "name": "secondary_damage",
+            "type": "u32"
+          },
+          {
+            "name": "can_switch_weapon",
+            "type": "bool"
+          },
+          {
+            "name": "reload_time",
+            "type": "u32"
+          },
+          {
+            "name": "last_shot_timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "is_reloading",
+            "type": "bool"
+          },
+          {
+            "name": "reload_start_timestamp",
+            "type": {
+              "option": "i64"
+            }
+          },
+          {
+            "name": "bolt_metadata",
+            "type": {
+              "defined": {
+                "name": "BoltMetadata"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
