@@ -101,17 +101,6 @@ int main() {
     SetTargetFPS(60);
 
     // Configure on-chain movement (program id from idl, RPC localhost)
-    #if defined(PLATFORM_WEB)
-        MovementBridge::init();
-        MovementBridge::configure(
-            "FsjfufYiF3FEzQXjjbiUyfDgoqxdgR4UpBQmC5w7zDVr", // program id
-            "", // position account (set later from JS if needed)
-            "", // player account (set later from JS if needed)
-            "http://localhost:8899" // local RPC
-        );
-        // Reasonable default throttle for local testing
-        MovementBridge::setMaxTps(10.0f);
-    #endif
 
     // Main game loop
     while (!WindowShouldClose()) {

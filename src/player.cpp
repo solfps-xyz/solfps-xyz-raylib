@@ -186,8 +186,6 @@ void Player::handleInput(float deltaTime) {
         if (IsKeyDown(KEY_D)) flags |= 1 << 3;
         if (IsKeyDown(KEY_SPACE)) flags |= 1 << 4; // jump intent
         if (isCrouching) flags |= 1 << 5;
-
-        MovementBridge::submit(flags, yaw, isSprinting ? 1 : 0);
     } else {
         // No horizontal movement
         velocity.x = 0.0f;
